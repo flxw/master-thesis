@@ -1,49 +1,23 @@
-% !TEX root = ../thesis-example.tex
-%
-\chapter{Introduction}
-\label{sec:intro}
+\chapter{Introduction}\label{sec:intro}
 
-\cleanchapterquote{You can’t do better design with a computer, but you can speed up your work enormously.}{Wim Crouwel}{(Graphic designer and typographer)}
+\cleanchapterquote{The most important contribution of management in the 20th century was to increase manual worker productivity fifty-fold. The most important contribution of management in the 21st century will be to increase knowledge worker productivity—hopefully by the same percentage.}{Peter Drucker}{(American management consultant and professor)}
 
-\Blindtext[2][2]
+\section{Research questions}\label{sec:intro:objective}
+In my thesis, I want to investigate the synergies of combining the aforementioned approach of Francescomarino et al. for learning data clustering with LSTM neural networks as per Evermann et al. Case data attributes shall be used during model training and prediction, as Polato et al. \cite{polato2014} and Schönig et al. \cite{schoenig2018} demonstrated their usefulness.
 
-\section{Postcards: My Address}
-\label{sec:intro:address}
+This would contribute to a field of research which is currently being explored and where LSTM networks have been applied successfully on prediction problems with long-term dependencies \cite{evermann2016, tax2017, schoenig2018, graves2005}.
 
-\textbf{Ricardo Langner} \\
-Alfred-Schrapel-Str. 7 \\
-01307 Dresden \\
-Germany
+%Furthermore, I want to investigate how much the accuracy of current LSTM approaches is improved if the learning data is clustered.
+Furthermore, I want to determine how historical case log data is prepared best for learning, as only Schönig et al. has written a small subsection on this \cite{schoenig2018}.
+If time permits, I also want to investigate the potential of ensembles within this context, as they can potentially enlighten the user about the reason for a prediction.
+With neural networks it is hard to comprehend the reasons behind a prediction.
+Other types of models deliver better comprehensibility.
+
+Throughout the document I will strive to meet recently demanded machine learning paper quality criteria \cite{lipton2018}.
+
+The performance of the combined approaches shall be evaluated against the data from the Business Process Intelligence Challenges (BPIC) 2011, 2012 and 2017 \cite{BPIC2011, BPIC2012, BPIC2017}. This allows for comparison with the results of Francescomarino et al., Evermann et al., Tax et al. and Schönig et al. \cite{francescomarino2018, evermann2016, tax2017, schoenig2018}.
+The next steps and an approximate timeframe are shown in the table below:\\[1em]
+
+\section{Thesis Structure}\label{sec:intro:structure}
 
 
-\section{Motivation and Problem Statement}
-\label{sec:intro:motivation}
-
-\Blindtext[3][1] \cite{Jurgens:2000,Jurgens:1995,Miede:2011,Kohm:2011,Apple:keynote:2010,Apple:numbers:2010,Apple:pages:2010}
-
-\section{Results}
-\label{sec:intro:results}
-
-\Blindtext[1][2]
-
-\subsection{Some References}
-\label{sec:intro:results:refs}
-\cite{WEB:GNU:GPL:2010,WEB:Miede:2011}
-
-\section{Thesis Structure}
-\label{sec:intro:structure}
-
-\textbf{Chapter \ref{sec:related}} \\[0.2em]
-\blindtext
-
-\textbf{Chapter \ref{sec:system}} \\[0.2em]
-\blindtext
-
-\textbf{Chapter \ref{sec:concepts}} \\[0.2em]
-\blindtext
-
-\textbf{Chapter \ref{sec:concepts}} \\[0.2em]
-\blindtext
-
-\textbf{Chapter \ref{sec:conclusion}} \\[0.2em]
-\blindtext
