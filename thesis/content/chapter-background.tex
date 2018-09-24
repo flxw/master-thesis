@@ -1,5 +1,7 @@
 \chapter{Background}\label{chap:background}
-\textbf{Predictive process monitoring:}
+\section{Topical location?}
+\todo[inline]{Check what better term there is?}
+\subsection{Predictive process monitoring:}
 Process science revolves around managing and optimizing structured procedures, while the broad area of data science covers data mining, algorithmic analysis and predictive analytics. 
 Bridging the gap between the two fields is process mining \cite[p.18]{Aalst16}.
 It covers the three steps of model discovery, conformance checking and model enhancement \cite{Aalst16}.
@@ -13,6 +15,7 @@ In the domain of business processes, statistical or machine learning models are 
 This application is called predictive process monitoring and allows answering questions such as \textit{Given the current state of things, will I still meet my SLA?} or \textit{Given the current case state, how long is this case still going to take?}.
 The answers to such questions can give case managers the opportunity to intervene if a case takes an unwanted course or might fail to meet KPI requirements.
 
+\section{Knowledge Discovery in Databases}
 \begin{figure}
 	\centering
 	\includegraphics[width=20em]{gfx/kdd_process}
@@ -28,18 +31,21 @@ Predictive analytics is a lot about model training, and the rough outline of nec
 \end{enumerate}
 
 \section{Sequence prediction}
-\subsection{seq2seq, word2seq}
-
-\section{Input data}
-BPIC competition....?
+\subsection{Sequence-to-Sequence}
+\subsection{Word-to-sequence}
 
 \section{Sequence data inputs}
 \subsection{Sliding Window}
 \subsection{N-gram}
 \subsection{Bag-Of-Words}
 \subsection{Learned features, word2vec}
+Strictly piecewise\\
+subsequences
 
-\section{Neural networks, LSTM memory, encoding decoding layers with long short-term memory} An artificial neural network is an example for a machine learning model. It is made up of neurons, similar to its organic counterpart. The network is organized in three types of layers: a single input layer, one or more hidden layers and a single output layer.
+\section{Neural networks}
+\subsection{RNN}
+\subsection{LSTM memory}
+encoding decoding layers with long short-term memory An artificial neural network is an example for a machine learning model. It is made up of neurons, similar to its organic counterpart. The network is organized in three types of layers: a single input layer, one or more hidden layers and a single output layer.
 The neurons (being mathematical functions), pass their output on to those in the next layer via weighted connections. The weights on these connections are changed as the network is trained \cite{rosenblatt1958}.
 Improving this forward-feeding network with backpropagation, i.e. learning from errors, made applications on pattern-detection successful\footnote{Backpropagation can be attributed to many authors, as Schmidhuber blogs: \url{http://people.idsia.ch/~juergen/who-invented-backpropagation.html}}.
 Finally, enhancing the network with a way to remember sequences of events allows application on time-series data. The capacity as well as the durability of this memory are purposely limited as to avoid overfitting.
