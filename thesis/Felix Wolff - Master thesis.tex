@@ -25,7 +25,7 @@
 % **************************************************
 % Information and Commands for Reuse
 % **************************************************
-\newcommand{\thesisTitle}{Deep Learning Next-Activity Prediction With Cluster-Based Input Data}
+\newcommand{\thesisTitle}{Deep Learning Next Event Prediction With Subsequence-Enrichted Input Data}
 \newcommand{\thesisName}{Felix Wolff}
 \newcommand{\thesisSubject}{Master's thesis}
 \newcommand{\thesisDate}{February 20, 2019}
@@ -35,9 +35,9 @@
 \newcommand{\thesisFirstReviewerUniversity}{\protect{Hasso Plattner Institut}}
 \newcommand{\thesisFirstReviewerDepartment}{Business Process Technology Group}
 
-\newcommand{\thesisSecondReviewer}{Prof. Dr. Stefan Lessmann}
-\newcommand{\thesisSecondReviewerUniversity}{\protect{Humboldt Universität Zu Berlin}}
-\newcommand{\thesisSecondReviewerDepartment}{Information Systems Group}
+\newcommand{\thesisSecondReviewer}{Prof. Dr. ????????????}
+\newcommand{\thesisSecondReviewerUniversity}{\protect{????????????}}
+\newcommand{\thesisSecondReviewerDepartment}{????????????}
 
 \newcommand{\thesisFirstSupervisor}{Dr. Luise Pufahl}
 \newcommand{\thesisSecondSupervisor}{Dr. Feng Cheng}
@@ -61,8 +61,8 @@
 	hangsection=true,%
 	hangsubsection=true,%
 	colorize=full,%
-	colortheme=bluemagenta,%
-	bibsys=bibtex,%
+	colortheme=bluemagenta,
+	bibsys=biber,%
 	bibfile=bib-refs,%
 	bibstyle=alphabetic,%
 ]{cleanthesis}
@@ -78,6 +78,7 @@
 	bookmarksnumbered=true,		%
 	bookmarksopen=true			%
 }
+\usepackage{todonotes}
 
 % **************************************************
 % Document CONTENT
@@ -118,11 +119,13 @@
 \setcounter{page}{1}			% set page counter
 \pagestyle{maincontentstyle} 	% fancy header and footer
 
-\input{content/chapter-introduction} % INCLUDE: introduction
-\input{content/chapter-related-work} % INCLUDE: related work
-\input{content/chapter-system}	% INCLUDE: system
-\input{content/chapter-concepts} % INCLUDE: concepts
-\input{content/chapter-conclusion} % INCLUDE: conclusion
+\input{content/chapter-introduction}
+\input{content/chapter-background}
+\input{content/chapter-related-work}
+\input{content/chapter-contribution}
+\input{content/chapter-evaluation}
+\input{content/chapter-conclusion}
+
 \cleardoublepage
 
 % --------------------------
@@ -134,7 +137,7 @@
 \setlength{\biblabelsep}{0pt}
 \setlength{\bibitemsep}{0.5\baselineskip plus 0.5\baselineskip}
 \printbibliography[nottype=online]
-\printbibliography[heading=subbibliography,title={Webseiten},type=online,prefixnumbers={@}]
+\printbibliography[heading=subbibliography,title={Online Sources},type=online,prefixnumbers={@}]
 }
 \cleardoublepage
 
