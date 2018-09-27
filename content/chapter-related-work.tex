@@ -1,0 +1,33 @@
+\chapter{Related Work}\label{chap:related-work}
+
+\cleanchapterquote{A picture is worth a thousand words. An interface is worth a thousand pictures.}{Ben Shneiderman}{(Professor for Computer Science)}
+
+
+Hauder et al. mention numerous research challenges in the domain of ACM, among them an active support system for knowledge workers \cite{hauder2014}.
+The need for such a system is emphasized by Francescomarino et al. in their literature review, where it has been found that few prediction approaches target the next activity \cite{francescomarino2018}.
+
+An example for how such a system might look like is given by Huber, who has developed a next-step recommendation system serving different case goals.
+The system is prototypically implemented into CoCaMa\footnote{CoCaMa is an abbreviation for a project called Collaborative Case Management, which appears to be retired: \url{http://archive.li/uZFnN}}, a prototypical case management application. The system has been evaluated with 25 hand-made case logs.
+
+Building upon each other are the works by Evermann et al. \cite{evermann2016} and Schönig et al. \cite{schoenig2018}.
+Evermann et al. have successfully demonstrated the good performance of long-short-term memory (LSTM) neural networks in predicting the next activity.
+Their approach did not take into account specific case data attributes however.
+How making use of this contextual information can improve the prediction accuracy even more, has been shown by Schönig et al. \cite{schoenig2018}.
+Furthermore Schönig et al. have explored data preparation methods for supporting the model during learning.
+
+Similarly, Polato et al. make use of environmental information in their work for improving the prediction of the remaining time of business process instances \cite{polato2014}.
+
+Metzger et al. predict run-time of a case by comparing and combining different prediction models into a model ensemble.
+Then, the members of the ensemble are selected based on their predictive performance measures.
+This allows taking into account costs of false predictions \cite{metzger2015}.
+
+Francescomarino et al. have performed clustering in the preprocessing phase of model training and prediction.
+Having clustered the training data, one model was created and trained for each cluster.
+For obtaining a prediction, the optimal cluster for a new data item is found from which the corresponding model is selected.
+This approach was evaluated on the accuracy of predicate fulfillment with two different clustering methods (k-means and DBSCAN) and two different prediction models (decision trees and random forests) \cite{francescomarino2015}.
+A further evaluation criteria was \textit{earliness}, i.e. at which point in time the correct result could be determined.
+
+\todo[inline]{SPICE competition submissions}
+\todo[inline]{LSTM application on sequences}
+\todo[inline]{LSTM application on sequences}
+\todo[inline]{PrefixSpan, Strictly-Piecewise features...}
