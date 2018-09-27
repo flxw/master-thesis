@@ -1,29 +1,36 @@
 \chapter{Background}\label{chap:background}
 The title of this thesis is \textit{\thesisTitle}.
-It brings together three domains: Process Science (hence Events), Predictive Modeling and Deep Learning.
+It brings together the domains of Process Science (hence Events), Predictive Modeling and Deep Learning.
 This chapter gives insights into these topics that will be used and needed throughout the thesis.
-This work can be attributed to the domain of Predictive Process Monitoring, which will also be briefly introduced.
+This work can be attributed to the domain of Predictive Process Monitoring, which will also be introduced.
 
-\section{Process Science}
-Process Science, as loosely defined by van der Aalst \cite{Aalst2016}
+\section{Process Science And Process Monitoring}
+Process Science, as loosely defined by van der Aalst \cite{Aalst2016}, refers to the \textit{broader discipline that combines knowledge from information technology and knowledge from management sciences to improve and run operational processes}. This means that approaches in this domain tend to be model-driven, like Six Sigma or Kaizen.
 
-\subsection*{Adaptive Case Management}
-Traditionally, business processes have been modeled in a very structured manner, for example using the Business Process Modeling Notation (BPMN) \cite{bpmn2.0}.
-\todo[inline]{Refer to business process management}
-In settings in which it is typical to use BPMN, such as assembly line productions, there is little heterogeneity.
-As the latter increases, BPMN and other business process modeling notations result in hardly understandable models and thus fail their purpose.
+Central to process science is Business Process Management (BPM) and process models.
+These models have traditionally been modeled in a very rigid manner, for example using the Business Process Modeling Notation (BPMN) \cite{bpmn2.0}.
+With the help of workflow management systems (WFMS), it became possible to embed and enforce structured processes in an organization.
+\todo[inline]{taxonomy for variability in processes}
 
-BPM does this, for such cases
-ACM does that, for these cases
+While model-driven, WFMS permitted some flexibility in processes and, most importantly for this thesis, logged execution traces of running process instances. With the increasing amount of logs, it became obvious that rigid models were not suited equally well for all types of processes. Especially in the insurance and health-care sector, each instance of a process tended to be very different from the next. This led to the notion of a case, and that its course strongly depended on the information contained inside it. 
 
-classification of models...
+\subsection{Adaptive Case Management}
+In settings in which it is common to employ BPM, such as assembly line productions, there is little heterogeneity. As the latter increases, BPMN and other business process modeling notations result in complex and hardly understandable models and thus fail their purpose. As previously mentioned, such cases tend to occur in domains where the trajectory is highly dependant on information specific to a case.
 
-In such cases, it is advisable make use of adaptive case management (ACM). Typical domains for ACM are health care, insurance...
-Only recently formalized \cite{hewelt2016}...
+The fact that this type of process is data-driven, led to the creation of the concept of a case folder - a directory central to a case, describing its current state. In contrast to BPM, the formalization of ACM and the subsequent creation of modeling languages has only just begun. Notable efforts include the Case Management Modeling Notation \cite{web:cmmn} as well as the Chimera approach \cite{hewelt2016}.
 
-following subchapters give information about
 
-\section{Predictive Process Monitoring}
+
+\subsection{Predictive Process Monitoring}
+This enabled Process Mining and data-driven process optimization through the discovery of bottlenecks.
+As Process Mining makes use of data processing analysis techniques common in the area of data science, it is common to understand is as a bridge between the two domains, as shown in \autoref{fig:process-data-science}.
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{gfx/process-data-science.png}
+    \caption{Caption}
+    \label{fig:process-data-science}
+\end{figure}
+
 Somewhere between Process Science and Data Science
 Process science revolves around managing and optimizing structured procedures, while the broad area of data science covers data mining, algorithmic analysis and predictive analytics. 
 Bridging the gap between the two fields is process mining \cite[p.18]{Aalst16}.
@@ -41,7 +48,7 @@ The answers to such questions can give case managers the opportunity to interven
 
 \begin{figure}
 	\centering
-	\includegraphics[width=20em]{gfx/acm-reasoning}
+	\includegraphics[width=\textwidth]{gfx/acm-reasoning}
 	\caption{https://acmisis.wordpress.com/what-is-adaptive-case-management-acm/}
 	\label{fig:why-acm}
 \end{figure}
@@ -53,7 +60,7 @@ The answers to such questions can give case managers the opportunity to interven
 \subsection{Knowledge Discovery in Databases}
 \begin{figure}
 	\centering
-	\includegraphics[width=20em]{gfx/kdd_process}
+	\includegraphics[width=\textwidth]{gfx/kdd_process}
 	\caption{The process for \textit{Knowledge Discovery in Databases}}
 	\label{fig:kdd_process}
 \end{figure}

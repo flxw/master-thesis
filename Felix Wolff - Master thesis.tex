@@ -1,3 +1,8 @@
+%% LLT: Turn off some annoying warnings...
+\RequirePackage{silence}
+\WarningFilter{titlesec}{Non standard sectioning command}
+\WarningFilter{scrreprt}{Usage of package}
+\WarningFilter{scrreprt}{Activating an ugly workaround}
 % **************************************************
 % Document Class Definition
 % **************************************************
@@ -64,7 +69,7 @@
 	colortheme=bluemagenta,
 	bibsys=biber,%
 	bibfile=bib-refs,%
-	bibstyle=alphabetic,%
+	bibstyle=numeric,
 ]{cleanthesis}
 
 \hypersetup{					% setup the hyperref-package options
@@ -137,7 +142,7 @@
 \setlength{\biblabelsep}{0pt}
 \setlength{\bibitemsep}{0.5\baselineskip plus 0.5\baselineskip}
 \printbibliography[nottype=online]
-\printbibliography[heading=subbibliography,title={Online Sources},type=online,prefixnumbers={@}]
+\printbibliography[heading=subbibliography,title={Webseiten},type=online,prefixnumbers={@}]
 }
 \cleardoublepage
 
