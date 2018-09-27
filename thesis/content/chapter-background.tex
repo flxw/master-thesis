@@ -1,10 +1,27 @@
 \chapter{Background}\label{chap:background}
-My thesis title is \textit{\thesisTitle}
+The title of this thesis is \textit{\thesisTitle}. It mentions the three pillars this work is built upon: Process Science, Predictive Modeling and Deep Learning. The latter refers to the application of neural networks for making predictions.
 
-\section{Case Management}
-\subsection{Event generation}
+This chapter gives the necessary insights into these different topics.
 
-\section{Predictive process monitoring:}
+\section{Process Science}
+\subsection{Adaptive Case Management}
+Traditionally, business processes have been modeled in a very structured manner, for example using the Business Process Modeling Notation (BPMN) \cite{bpmn2.0}.
+\todo[inline]{Refer to business process management}
+In settings in which it is typical to use BPMN, such as assembly line productions, there is little heterogeneity.
+As the latter increases, BPMN and other business process modeling notations result in hardly understandable models and thus fail their purpose.
+
+BPM does this, for such cases
+ACM does that, for these cases
+
+classification of models...
+
+In such cases, it is advisable make use of adaptive case management (ACM). Typical domains for ACM are health care, insurance...
+Only recently formalized \cite{hewelt2016}...
+
+following subchapters give information about
+
+\subsection{Predictive Process Monitoring}
+Somewhere between Process Science and Data Science
 Process science revolves around managing and optimizing structured procedures, while the broad area of data science covers data mining, algorithmic analysis and predictive analytics. 
 Bridging the gap between the two fields is process mining \cite[p.18]{Aalst16}.
 It covers the three steps of model discovery, conformance checking and model enhancement \cite{Aalst16}.
@@ -18,6 +35,15 @@ In the domain of business processes, statistical or machine learning models are 
 This application is called predictive process monitoring and allows answering questions such as \textit{Given the current state of things, will I still meet my SLA?} or \textit{Given the current case state, how long is this case still going to take?}.
 The answers to such questions can give case managers the opportunity to intervene if a case takes an unwanted course or might fail to meet KPI requirements.
 
+
+\begin{figure}
+	\centering
+	\includegraphics[width=20em]{gfx/acm-reasoning}
+	\caption{https://acmisis.wordpress.com/what-is-adaptive-case-management-acm/}
+	\label{fig:why-acm}
+\end{figure}
+
+\section{Predictive Modeling}
 \subsection{Subsequence Mining}
 
 \section{Predictive Modeling}
