@@ -97,7 +97,7 @@ class SeqDataModel(chainer.Chain):
         return
 
 
-gordon = SeqDataModel(vocab_size=train_x.shape[0], class_size=train_x.shape[1])
+gordon = SeqDataModel(vocab_size=train_x.shape[1], class_size=train_y.shape[1])
 model = L.Classifier(gordon, accfun=F.accuracy)
 optimizer = chainer.optimizers.MomentumSGD().setup(model)
 
