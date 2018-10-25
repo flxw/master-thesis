@@ -1,6 +1,8 @@
-*.xeS
+*.xes
 .idea
-notebooks/.ipynb_checkpoints
+.ipynb_checkpoints
+*.pickled
+*.csv
 
 ## Core latex/pdflatex auxiliary files:
 *.aux
