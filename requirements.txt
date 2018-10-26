@@ -1,0 +1,3 @@
+opyenxes==0.3.0
+prefixspan==0.5.2
+tqdm==4.26.0
