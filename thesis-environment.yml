@@ -1,111 +1,108 @@
-# packages in environment at /home/felix.wolff2/anaconda3/envs/thesis:
-#
-# Name                    Version                   Build  Channel
-_tflow_1100_select        0.0.1                       gpu  
-absl-py                   0.5.0                      py_0    conda-forge
-astor                     0.7.1                      py_0    conda-forge
-backcall                  0.1.0                    py36_0  
-blas                      1.0                         mkl  
-bleach                    3.0.2                    py36_0  
-c-ares                    1.15.0               h470a237_0    conda-forge
-ca-certificates           2018.03.07                    0  
-certifi                   2018.10.15               py36_0  
-Click                     7.0                       <pip>
-cudatoolkit               9.2                           0  
-cudnn                     7.2.1                 cuda9.2_0  
-cupti                     9.2.148                       0  
-decorator                 4.3.0                    py36_0  
-entrypoints               0.2.3                    py36_2  
-extratools                0.8.1                     <pip>
-gast                      0.2.0                      py_0    conda-forge
-gmp                       6.1.2                h6c8ec71_1  
-grpcio                    1.12.1           py36hdbcaa40_0  
-h5py                      2.8.0            py36h097b052_4    conda-forge
-hdf5                      1.10.3               hc401514_2    conda-forge
-intel-openmp              2019.0                      118  
-ipykernel                 5.1.0            py36h39e3cac_0  
-ipython                   7.0.1            py36h39e3cac_0  
-ipython_genutils          0.2.0                    py36_0  
-jedi                      0.13.1                   py36_0  
-jinja2                    2.10                     py36_0  
-jsonschema                2.6.0                    py36_0  
-jupyter_client            5.2.3                    py36_0  
-jupyter_core              4.4.0                    py36_0  
-jupyterlab                0.35.2                   py36_0  
-jupyterlab_server         0.2.0                    py36_0  
-keras-applications        1.0.6                    py36_0  
-keras-base                2.2.4                    py36_0  
-keras-gpu                 2.2.4                         0  
-keras-preprocessing       1.0.5                    py36_0  
-libedit                   3.1.20170329         h6b74fdf_2  
-libffi                    3.2.1                hd88cf55_4  
-libgcc-ng                 8.2.0                hdf63c60_1  
-libgfortran               3.0.0                         1    conda-forge
-libgfortran-ng            7.2.0                hdf63c60_3    conda-forge
-libgpuarray               0.7.6                h470a237_3    conda-forge
-libprotobuf               3.6.1                hd28b015_0    conda-forge
-libsodium                 1.0.16               h1bed415_0  
-libstdcxx-ng              8.2.0                hdf63c60_1  
-mako                      1.0.7                      py_1    conda-forge
-markdown                  2.6.11                     py_0    conda-forge
-markupsafe                1.0              py36h470a237_1    conda-forge
-mistune                   0.8.4            py36h7b6447c_0  
-mkl                       2019.0                      118  
-mkl_fft                   1.0.6                    py36_0    conda-forge
-mkl_random                1.0.1                    py36_0    conda-forge
-nb_conda                  2.2.1                    py36_0  
-nb_conda_kernels          2.1.1                    py36_1  
-nbconvert                 5.3.1                    py36_0  
-nbformat                  4.4.0                    py36_0  
-ncurses                   6.1                  hf484d3e_0  
-notebook                  5.7.0                    py36_0  
-numpy                     1.15.3           py36h1d66e8a_0  
-numpy-base                1.15.3           py36h81de0dd_0  
-openssl                   1.1.1                h7b6447c_0  
-opyenxes                  0.3.0                     <pip>
-pandas                    0.23.4           py36h04863e7_0  
-pandoc                    2.2.3.2                       0  
-pandocfilters             1.4.2                    py36_1  
-parso                     0.3.1                    py36_0  
-pexpect                   4.6.0                    py36_0  
-pickleshare               0.7.5                    py36_0  
-pip                       18.1                  py36_1000    conda-forge
-prefixspan                0.5.2                     <pip>
-prometheus_client         0.4.2                    py36_0  
-prompt_toolkit            2.0.6                    py36_0  
-protobuf                  3.6.1            py36hfc679d8_1    conda-forge
-ptyprocess                0.6.0                    py36_0  
-pygments                  2.2.0                    py36_0  
-pygpu                     0.7.6            py36h7eb728f_0    conda-forge
-python                    3.6.7                h0371630_0  
-python-dateutil           2.7.3                    py36_0  
-pytz                      2018.5                   py36_0  
-pyyaml                    3.13             py36h470a237_1    conda-forge
-pyzmq                     17.1.2           py36h14c3975_0  
-readline                  7.0                  h7b6447c_5  
-scipy                     1.1.0            py36hfa4b5c9_1  
-send2trash                1.5.0                    py36_0  
-setuptools                40.4.3                   py36_0    conda-forge
-simplegeneric             0.8.1                    py36_2  
-six                       1.11.0                py36_1001    conda-forge
-sqlite                    3.25.2               h7b6447c_0  
-tensorboard               1.10.0                   py36_0    conda-forge
-tensorflow                1.10.0          gpu_py36hcebf108_0  
-tensorflow-base           1.10.0          gpu_py36had579c0_0  
-tensorflow-gpu            1.10.0               hf154084_0  
-termcolor                 1.1.0                      py_2    conda-forge
-terminado                 0.8.1                    py36_1  
-testpath                  0.4.2                    py36_0  
-theano                    1.0.3                    py36_0    conda-forge
-tk                        8.6.8                hbc83047_0  
-tornado                   5.1.1            py36h7b6447c_0  
-tqdm                      4.26.0           py36h28b3542_0  
-traitlets                 4.3.2                    py36_0  
-wcwidth                   0.1.7                    py36_0  
-webencodings              0.5.1                    py36_1  
-werkzeug                  0.14.1                     py_0    conda-forge
-wheel                     0.32.2                   py36_0    conda-forge
-xz                        5.2.4                h14c3975_4  
-yaml                      0.1.7                h470a237_1    conda-forge
-zeromq                    4.2.5                hf484d3e_1  
-zlib                      1.2.11               ha838bed_2  
+# This file may be used to create an environment using:
+# $ conda create --name <env> --file <this file>
+# platform: linux-64
+@EXPLICIT
+https://repo.anaconda.com/pkgs/main/linux-64/_tflow_1100_select-0.0.1-gpu.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/blas-1.0-mkl.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/ca-certificates-2018.03.07-0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/cudatoolkit-9.2-0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/intel-openmp-2019.0-118.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/libgcc-ng-8.2.0-hdf63c60_1.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/libgfortran-3.0.0-1.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/libgfortran-ng-7.2.0-hdf63c60_3.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/libstdcxx-ng-8.2.0-hdf63c60_1.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/c-ares-1.15.0-h470a237_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/cudnn-7.2.1-cuda9.2_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/cupti-9.2.148-0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/gmp-6.1.2-h6c8ec71_1.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/libffi-3.2.1-hd88cf55_4.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/libgpuarray-0.7.6-h470a237_3.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/libsodium-1.0.16-h1bed415_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/mkl-2019.0-118.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/ncurses-6.1-hf484d3e_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/openssl-1.1.1-h7b6447c_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/xz-5.2.4-h14c3975_4.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/yaml-0.1.7-h470a237_1.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/zlib-1.2.11-ha838bed_2.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/hdf5-1.10.3-hc401514_2.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/libedit-3.1.20170329-h6b74fdf_2.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/libprotobuf-3.6.1-hd28b015_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/pandoc-2.2.3.2-0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/readline-7.0-h7b6447c_5.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/tk-8.6.8-hbc83047_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/zeromq-4.2.5-hf484d3e_1.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/sqlite-3.25.2-h7b6447c_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/python-3.6.7-h0371630_0.tar.bz2
+https://conda.anaconda.org/conda-forge/noarch/astor-0.7.1-py_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/backcall-0.1.0-py36_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/certifi-2018.10.15-py36_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/decorator-4.3.0-py36_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/entrypoints-0.2.3-py36_2.tar.bz2
+https://conda.anaconda.org/conda-forge/noarch/gast-0.2.0-py_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/ipython_genutils-0.2.0-py36_0.tar.bz2
+https://conda.anaconda.org/conda-forge/noarch/markdown-2.6.11-py_0.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/markupsafe-1.0-py36h470a237_1.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/mistune-0.8.4-py36h7b6447c_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/numpy-base-1.15.3-py36h81de0dd_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/pandocfilters-1.4.2-py36_1.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/parso-0.3.1-py36_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/pickleshare-0.7.5-py36_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/prometheus_client-0.4.2-py36_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/ptyprocess-0.6.0-py36_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/pytz-2018.5-py36_0.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/pyyaml-3.13-py36h470a237_1.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/pyzmq-17.1.2-py36h14c3975_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/send2trash-1.5.0-py36_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/simplegeneric-0.8.1-py36_2.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/six-1.11.0-py36_1001.tar.bz2
+https://conda.anaconda.org/conda-forge/noarch/termcolor-1.1.0-py_2.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/testpath-0.4.2-py36_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/tornado-5.1.1-py36h7b6447c_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/tqdm-4.26.0-py36h28b3542_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/wcwidth-0.1.7-py36_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/webencodings-0.5.1-py36_1.tar.bz2
+https://conda.anaconda.org/conda-forge/noarch/werkzeug-0.14.1-py_0.tar.bz2
+https://conda.anaconda.org/conda-forge/noarch/absl-py-0.5.0-py_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/jedi-0.13.1-py36_0.tar.bz2
+https://conda.anaconda.org/conda-forge/noarch/mako-1.0.7-py_1.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/pexpect-4.6.0-py36_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/python-dateutil-2.7.3-py36_0.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/setuptools-40.4.3-py36_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/terminado-0.8.1-py36_1.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/traitlets-4.3.2-py36_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/bleach-3.0.2-py36_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/grpcio-1.12.1-py36hdbcaa40_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/jinja2-2.10-py36_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/jsonschema-2.6.0-py36_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/jupyter_core-4.4.0-py36_0.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/protobuf-3.6.1-py36hfc679d8_1.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/pygments-2.2.0-py36_0.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/wheel-0.32.2-py36_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/jupyter_client-5.2.3-py36_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/nbformat-4.4.0-py36_0.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/pip-18.1-py36_1000.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/prompt_toolkit-2.0.6-py36_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/ipython-7.0.1-py36h39e3cac_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/nbconvert-5.3.1-py36_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/ipykernel-5.1.0-py36h39e3cac_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/notebook-5.7.0-py36_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/jupyterlab_server-0.2.0-py36_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/nb_conda_kernels-2.1.1-py36_1.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/jupyterlab-0.35.2-py36_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/nb_conda-2.2.1-py36_0.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/h5py-2.8.0-py36h097b052_4.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/keras-applications-1.0.6-py36_0.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/mkl_fft-1.0.6-py36_0.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/mkl_random-1.0.1-py36_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/numpy-1.15.3-py36h1d66e8a_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/pandas-0.23.4-py36h04863e7_0.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/pygpu-0.7.6-py36h7eb728f_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/scipy-1.1.0-py36hfa4b5c9_1.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/tensorboard-1.10.0-py36_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/tensorflow-base-1.10.0-gpu_py36had579c0_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/keras-preprocessing-1.0.5-py36_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/tensorflow-1.10.0-gpu_py36hcebf108_0.tar.bz2
+https://conda.anaconda.org/conda-forge/linux-64/theano-1.0.3-py36_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/keras-base-2.2.4-py36_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/tensorflow-gpu-1.10.0-hf154084_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/linux-64/keras-gpu-2.2.4-0.tar.bz2
