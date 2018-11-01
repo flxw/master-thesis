@@ -40,22 +40,12 @@ def model(X_train, Y_train, X_test, Y_test):
         model_inputs.append(il)
         models.append(model)
 
-    # create input and embedding for sp2/pfs2 features
-    learn_sp2 = True
-    sequence_embedding = None
-
-    if learn_sp2:
-        il = Input(batch_shape=(1,n_sp2_features), name=generate_input_name("sp2"))
-        model_inputs.append(il)
-
-        no_of_unique_cat = n_sp2_features
-        embedding_size   = int(min(np.ceil((no_of_unique_cat)/2), 50 ))
-        vocab  = no_of_unique_cat+1
-        sequence_embedding = Embedding(vocab, embedding_size)(il)
-        sequence_embedding = Reshape(target_shape=(il.shape[1].value*embedding_size,))(sequence_embedding)
-    else:
-        # TODO
-        pass
+    # create input and embedding for sp2 features
+    il = Input(batch_shape=(1,n_sp2_features), name=generate_input_name("sp2"))
+    model_inputs.append(il)
+    sp2_embedding = il
+    # TODO mimic embedding architecture
+    # sequence_embedding = Reshape(target_shape=(n_sp2_features,))(sequence_embedding)
 
     # merge the outputs of the embeddings, and everything that belongs to the most recent activity executions
     main_output = concatenate(models, axis=2)
@@ -63,7 +53,7 @@ def model(X_train, Y_train, X_test, Y_test):
     main_output = LSTM(25*32, stateful=True)(main_output) # should be multiple of 32 since it trains faster due to np.float32
 
     # after LSTM has learned on the sequence, bring in the SP2/PFS features, like in Shibatas paper
-    main_output = concatenate([main_output, sequence_embedding])
+    main_output = concatenate([main_output, sp2_embedding])
     main_output = Dense(20*32, activation='relu', name='dense_join')(main_output)
     main_output = Dense(len(feature_dict["concept:name"]["to_int"]), activation='sigmoid', name='dense_final')(main_output)
 

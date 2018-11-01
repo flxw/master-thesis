@@ -49,16 +49,15 @@ if __name__ == '__main__':
 
     # sizes should be multiple of 32 since it trains faster due to np.float32
     main_output = LSTM(500,
-                       batch_input_shape=(batch_size,None,500),
-                       stateful=True,
+                       batch_input_shape=(batch_size,None,1),
+                       stateful=False,
                        return_sequences=True,
                        unroll=False,
                        kernel_initializer=keras.initializers.glorot_uniform(seed=123))(main_output)
-    # main_output = LSTM(500,
-    #                    stateful=False,
-    #                    return_sequences=False,
-    #                    kernel_initializer=keras.initializers.glorot_uniform(seed=123),
-    #                    activation='sigmoid')(main_output)
+    main_output = LSTM(500,
+                       stateful=False,
+                       return_sequences=True,
+                       kernel_initializer=keras.initializers.glorot_uniform(seed=123))(main_output)
 
     main_output = Dense(len(feature_dict["concept:name"]["to_int"]), activation='softmax', name='dense_final')(main_output)
 
@@ -69,7 +68,8 @@ if __name__ == '__main__':
     if args.network_to_continue:
         full_model = keras.models.load_model(args.network_to_continue)
         
-    n_epochs = 100
+    n_epochs = 400
+    best_acc = 0
     for epoch in range(1,n_epochs+1):
         mean_tr_acc  = []
         mean_tr_loss = []
@@ -83,5 +83,9 @@ if __name__ == '__main__':
             mean_tr_acc.append(tr_acc)
             mean_tr_loss.append(tr_loss)
 
+        mean_tr_acc = round(np.mean(mean_tr_acc),3)
         print('Epoch {0} -- loss = {1:.5f} -- acc = {2:.5f}'.format(epoch,np.mean(mean_tr_loss), np.mean(mean_tr_acc)))
-        full_model.save('evermann_baseline_e{0}.h5'.format(epoch))  # creates a HDF5 file 'my_model.h5'
+        
+        if best_acc < mean_tr_acc:
+            best_acc = mean_tr_acc
+            full_model.save('evermann_baseline_e{0}_acc{1}.h5'.format(epoch,best_acc))
