@@ -1,5 +1,6 @@
 opyenxes==0.3.0
 prefixspan==0.5.2
 tqdm==4.26.0
-hyperas==0.4
+talos==0.4.3
+requests==2.20.0
 deepreplay==0.1.1a2
