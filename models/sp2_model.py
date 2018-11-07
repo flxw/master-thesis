@@ -1,71 +1,210 @@
-from hyperopt import STATUS_OK
-from hyperas import optim
-from hyperas.distributions import choice, uniform
+import keras
+import pickle
+import random
+import numpy as np
+import pandas as pd
+import re
+import os
+import itertools
+import tqdm
 
-def model(X_train, Y_train, X_test, Y_test):
-    '''
-    Model providing function:
+from keras.models import Sequential, Model
+from keras.layers import Dense, Embedding, Input, Reshape, concatenate, Flatten, Activation, LSTM, Dropout
+from keras.utils import np_utils
 
-    Create Keras model with double curly brackets dropped-in as needed.
-    Return value has to be a valid python dictionary with two customary keys:
-        - loss: Specify a numeric evaluation metric to be minimized
-        - status: Just use STATUS_OK and see hyperopt documentation if not feasible
-    The last one is optional, though recommended, namely:
-        - model: specify the model just created so that we can later use it again.
-    '''
-    from keras.models import Sequential, Model
-    from keras.layers import Dense, Embedding, Input, Reshape, concatenate, Flatten, Activation, LSTM
+##############################
+##### CONFIGURATION SETUP ####
+data_path = "../logs/bpic2011.xes"
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+target_variable = "concept:name"
+stop_patience=5
+stop_delta=0.05
+### CONFIGURATION SETUP END ###
+###############################
 
-    models = []
-    model_inputs = []
+def dict_product(dicts):
+    """
+    >>> list(dict_product(dict(number=[1,2], character='ab')))
+    [{'character': 'a', 'number': 1},
+     {'character': 'a', 'number': 2},
+     {'character': 'b', 'number': 1},
+     {'character': 'b', 'number': 2}]
+    """
+    return (dict(zip(dicts, x)) for x in itertools.product(*dicts.values()))
 
-    # forward all ordinal features
-    for ord_var in feature_names[:cat_col_start_index]:
-        il = Input(batch_shape=(1,1), name=generate_input_name(ord_var))
-        model = Reshape(target_shape=(1,1,))(il)
-        model_inputs.append(il)
-        models.append(model)
+def load_trace_dataset(purpose='categorical', ttype='test'):
+    suffix = "_{0}_{1}.pickled".format(purpose, ttype)
+    p = data_path.replace(".xes", suffix)
+    return pickle.load(open(p, "rb"))
+    
+def sp2_model(train_input_batches_seq, train_input_batches_sp2, train_target_batches, 
+              test_input_batches_seq, test_input_batches_sp2, test_target_batches, params):
+    ### BEGIN MODEL CONSTRUCTION
+    batch_size = None # None translates to unknown batch size
+    seq_unit_count = n_seq_cols + n_target_cols
 
-    # create embedding layers for every categorical feature
-    for cat_var in categorical_feature_names :
-        model = Sequential()
-        no_of_unique_cat  = len(feature_dict[cat_var]['to_int'])
-        embedding_size = int(min(np.ceil((no_of_unique_cat)/2), 50 ))
-        vocab  = no_of_unique_cat+1
+    # array format: [samples, time steps, features]
+    il = Input(batch_shape=(batch_size,None,n_seq_cols), name="seq_input")
 
-        il = Input(batch_shape=(1,1), name=generate_input_name(cat_var))    
-        model = Embedding(vocab, embedding_size)(il)
-        model = Reshape(target_shape=(1,embedding_size,))(model)
+    # sizes should be multiple of 32 since it trains faster due to np.float32
+    main_output = LSTM(seq_unit_count,
+                       batch_input_shape=(batch_size,None,n_seq_cols),
+                       stateful=False,
+                       return_sequences=True,
+                       unroll=False,
+                       kernel_initializer=keras.initializers.Zeros())(il)
+    main_output = LSTM(seq_unit_count,
+                       stateful=False,
+                       return_sequences=True,
+                       unroll=False,
+                       kernel_initializer=keras.initializers.Zeros())(main_output)
 
-        model_inputs.append(il)
-        models.append(model)
+    il2 = Input(batch_shape=(batch_size,None,n_sp2_cols), name="sp2_input")
+    main_output = concatenate([main_output, il2], axis=-1)
+    main_output = Dropout(params['dropout'])(main_output)
+    main_output = Dense(n_target_cols, activation=keras.activations.relu)(main_output)
+    main_output = Dropout(params['dropout'])(main_output)
+    main_output = Activation(keras.activations.sigmoid)(main_output)
 
-    # create input and embedding for sp2 features
-    il = Input(batch_shape=(1,n_sp2_features), name=generate_input_name("sp2"))
-    model_inputs.append(il)
-    sp2_embedding = il
-    # TODO mimic embedding architecture
-    # sequence_embedding = Reshape(target_shape=(n_sp2_features,))(sequence_embedding)
+    full_model = Model(inputs=[il, il2], outputs=[main_output])
 
-    # merge the outputs of the embeddings, and everything that belongs to the most recent activity executions
-    main_output = concatenate(models, axis=2)
-    main_output = LSTM(25*32, batch_input_shape=(1,), stateful=True)(main_output) # should be multiple of 32 since it trains faster due to np.float32
-    main_output = LSTM(25*32, stateful=True)(main_output) # should be multiple of 32 since it trains faster due to np.float32
+    full_model.compile(loss='categorical_crossentropy',
+                       optimizer=params['optimizer'],
+                       metrics=['categorical_accuracy', 'mae'])
+    
+    ### BEGIN MODEL TRAINING
+    n_epochs = params['epochs']
+    best_acc = 0
+    tr_acc_s = 0.0
+    tr_loss_s = 0
+    last_loss = 0.0
+    patience_counter = 0
+    
+    for epoch in range(1,n_epochs+1):
+        mean_tr_acc  = []
+        mean_tr_loss = []
+        mean_tr_mae  = []
+        
+        for t_idx in tqdm.tqdm(range(0, len(train_input_batches_seq)),
+                               desc="Epoch {0}/{1} | {2:.2f}% | {3:.2f}".format(epoch,n_epochs, tr_acc_s, tr_loss_s)):
+            
+            # Each batch consists of a single sample, i.e. one whole trace (1)
+            # A trace is represented by a variable number of timesteps (-1)
+            # And finally, each timestep contains n_train_cols variables
+            batch_x_seq = train_input_batches_seq[t_idx].reshape((1,-1,n_seq_cols))
+            batch_x_sp2 = train_input_batches_sp2[t_idx].reshape((1,-1,n_sp2_cols))
+            batch_y = train_target_batches[t_idx].reshape((1,-1,n_target_cols))
+            
+            tr_loss, tr_acc, tr_mae = full_model.train_on_batch({'seq_input': batch_x_seq, 'sp2_input': batch_x_sp2}, batch_y)
+            mean_tr_acc.append(tr_acc)
+            mean_tr_loss.append(tr_loss)
+            mean_tr_mae.append(tr_mae)
+            
+        tr_acc_s = 100*round(np.mean(mean_tr_acc),3)
+        tr_loss_s = np.mean(mean_tr_loss)
 
-    # after LSTM has learned on the sequence, bring in the SP2/PFS features, like in Shibatas paper
-    main_output = concatenate([main_output, sp2_embedding])
-    main_output = Dense(20*32, activation='relu', name='dense_join')(main_output)
-    main_output = Dense(len(feature_dict["concept:name"]["to_int"]), activation='sigmoid', name='dense_final')(main_output)
+        if best_acc < tr_acc_s:
+            best_acc = tr_acc_s
+            
+        if stop_delta > (last_loss-mean_tr_loss):
+            patience_counter+=1
+        else:
+            patience_counter = 0
+            
+        if patience_counter == stop_patience:
+            tqdm.write("Reached early-stopping threshold!")
+            break;
 
-    full_model = Model(inputs=model_inputs, outputs=[main_output])
-    full_model.compile(loss='categorical_crossentropy', optimizer='adam')
+    return best_acc, full_model
 
-    model.fit(X_train, Y_train,
-              batch_size={{choice([64, 128])}},
-              nb_epoch=1,
-              show_accuracy=True,
-              verbose=2,
-              validation_data=(X_test, Y_test))
-    score, acc = model.evaluate(X_test, Y_test, show_accuracy=True, verbose=0)
-    print('Test accuracy:', acc)
-    return {'loss': -acc, 'status': STATUS_OK, 'model': model}
+if __name__ == '__main__':    
+    ### BE NICE SAY HELLO
+    print("Welcome to Felix' master thesis: Deep Learning Next-Activity Prediction Using Subsequence-Enriched Input Data")
+    print("Will now tune hyper-parameters for the SP2 model on the BPIC2011 dataset")
+    print("\n")
+    
+    ### BEGIN DATA LOADING
+    train_traces_categorical = load_trace_dataset('categorical', 'train')
+    train_traces_ordinal = load_trace_dataset('ordinal', 'train')
+    train_targets = load_trace_dataset('target', 'train')
+    train_traces_sp2 = load_trace_dataset('sp2', 'train')
+
+    test_traces_categorical = load_trace_dataset('categorical', 'test')
+    test_traces_ordinal = load_trace_dataset('ordinal', 'test')
+    test_targets = load_trace_dataset('target', 'test')
+    test_traces_sp2 = load_trace_dataset('sp2', 'test')
+
+    feature_dict = load_trace_dataset('mapping', 'dict')
+    
+    ### DO FINAL DATA PREPARATION
+    # Use one-hot encoding for categorical values in training and test set
+    for col in train_traces_categorical[0].columns:
+        nc = len(feature_dict[col]['to_int'].values())
+        for i in range(0, len(train_traces_categorical)):
+            tmp = train_traces_categorical[i][col].map(feature_dict[col]['to_int'])
+            tmp = np_utils.to_categorical(tmp, num_classes=nc)
+            tmp = pd.DataFrame(tmp).add_prefix(col)
+
+            train_traces_categorical[i].drop(columns=[col], inplace=True)
+            train_traces_categorical[i] = pd.concat([train_traces_categorical[i], tmp], axis=1)
+            
+        for i in range(0, len(test_traces_categorical)):
+            tmp = test_traces_categorical[i][col].map(feature_dict[col]['to_int'])
+            tmp = np_utils.to_categorical(tmp, num_classes=nc)
+            tmp = pd.DataFrame(tmp).add_prefix(col)
+
+            test_traces_categorical[i].drop(columns=[col], inplace=True)
+            test_traces_categorical[i] = pd.concat([test_traces_categorical[i], tmp], axis=1)
+            
+    # categorical and ordinal inputs are fed in on one single layer
+    train_traces_seq = [ pd.concat([a,b], axis=1) for a,b in zip(train_traces_ordinal, train_traces_categorical) ]
+    test_traces_seq  = [ pd.concat([a,b], axis=1) for a,b in zip(test_traces_ordinal,  test_traces_categorical)  ]
+    
+    # tie everything together since we only have a single input layer
+    n_sp2_cols = len(train_traces_sp2[0].columns)
+    n_seq_cols = len(train_traces_seq[0].columns)
+    n_target_cols = len(train_targets[0].columns)
+    
+    train_input_batches_seq  = np.array([ t.values  for t in train_traces_seq ])
+    train_input_batches_sp2  = np.array([ t.values  for t in train_traces_sp2 ])
+    train_target_batches     = np.array([ t.values for t in train_targets])
+    
+    test_input_batches_seq  = np.array([ t.values for t in test_traces_seq ])
+    test_input_batches_sp2  = np.array([ t.values for t in test_traces_sp2 ])
+    test_target_batches     = np.array([ t.values for t in test_targets ])
+    
+    
+    ### DEFINE HYPER-PARAMETER TUNING RANGE
+    params = {
+        'epochs': [100],
+        'optimizer': ['rmsprop', 'adam', 'sgd'],
+        'dropout': [0, .5] # .5 is chainer default and was used by Shibata et al.
+    }
+    
+    # all the hyperoptimization libraries suck if you do not use fit
+    # just do a simple self-built version here
+    winner_acc = 0
+    winner_model = 0
+    winner_params = None
+    for param_combo in dict_product(params):
+        acc,model = sp2_model(train_input_batches_seq,
+                  train_input_batches_sp2,
+                  train_target_batches, 
+                  test_input_batches_seq,
+                  test_input_batches_sp2,
+                  test_target_batches,
+                  param_combo)
+        
+        if acc > winner_acc:
+            winner_acc = acc
+            winner_model = model
+            winner_params = param_combo
+            
+    winner_model.save('sp2_hypertuning_winner_acc{0:.2f}.h5'.format(winner_acc))
+    pickle.dump(winner_params, open("sp2_hypertuning_winner_params", "wb"), protocol=pickle.HIGHEST_PROTOCOL)
+
+    
+    print("Evalutation of best performing model:")
+    print(winner_model.evaluate({'seq_input': test_input_batches_seq, 'sp2_input': test_input_batches_sp2}, test_target_batches, batch_size=1))
+    print("Best performing model chosen hyper-parameters:")
+    print(best_run)

@@ -1,9 +1,3 @@
-import argparse
-parser = argparse.ArgumentParser(description='Train a mimicked implementation of Jorg Evermann\'s neural network')
-parser.add_argument('--continue', dest='network_to_continue', action='store', default=False,
-                     help='Which network file to continue training')
-args = parser.parse_args()
-
 import keras
 import pickle
 import random
@@ -12,40 +6,42 @@ import pandas as pd
 import re
 import os
 
-from tqdm import *
+import tqdm
 from keras.models import Sequential, Model
 from keras.layers import Dense, Embedding, Input, Reshape, concatenate, Flatten, Activation, LSTM
-from keras.utils import np_utils
 
 ##############################
 ##### CONFIGURATION SETUP ####
 data_path = "../logs/bpic2011.xes"
-traces_finalpath = data_path.replace(".xes", "_traces_encoded.pickled")
-traces_dictionarypath = data_path.replace(".xes", "_dictionaries.pickled")
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 target_variable = "concept:name"
-
-traces = pickle.load(open(traces_finalpath, "rb"))
-feature_dict = pickle.load(open(traces_dictionarypath, "rb"))
-windowsize = 20
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 ### CONFIGURATION SETUP END ###
 ###############################
 
+def load_trace_dataset(purpose='categorical', ttype='test'):
+    suffix = "_{0}_{1}.pickled".format(purpose, ttype)
+    p = data_path.replace(".xes", suffix)
+    return pickle.load(open(p, "rb"))
+
 if __name__ == '__main__':    
-    # be nice, say hello
+    ### BE NICE SAY HELLO
     print("Welcome to Felix' master thesis: Deep Learning Next-Activity Prediction Using Subsequence-Enriched Input Data")
     print("Will now train a mimicked implementation of Evermann's network as he has described it in his 2016 paper")
-#     print("Total number of GPUs to be used: {0}".format(ngpus))
     print("\n")
-    # shuffle complete traces and create test and training set
-    random.shuffle(traces)
-    sep_idx = int(0.8*len(traces))
     
-    batch_size = 1
+    ### BEGIN DATA LOADING
+    train_traces = load_trace_dataset('categorical', 'train')
+    train_targets = load_trace_dataset('target', 'train')
+    test_traces = load_trace_dataset('categorical', 'test')
+    test_targets = load_trace_dataset('target', 'test')
+    feature_dict = load_trace_dataset('mapping', 'dict')
+    
+    ### BEGIN MODEL CONSTRUCTION
+    batch_size = None # None translates to unknown batch size
     # [samples, time steps, features]
     il = Input(batch_shape=(batch_size,None,1))
-    main_output = il
-    # main_output = Embedding(624, 500)(il)
+    main_output = Embedding(624, 500)(il)
+    main_output = Reshape(target_shape=(-1,500))(main_output) # reshape layer does not need to know BATCH SIZE!!!
 
     # sizes should be multiple of 32 since it trains faster due to np.float32
     main_output = LSTM(500,
@@ -53,39 +49,49 @@ if __name__ == '__main__':
                        stateful=False,
                        return_sequences=True,
                        unroll=False,
-                       kernel_initializer=keras.initializers.glorot_uniform(seed=123))(main_output)
+                       kernel_initializer=keras.initializers.Zeros())(main_output)
     main_output = LSTM(500,
                        stateful=False,
                        return_sequences=True,
-                       kernel_initializer=keras.initializers.glorot_uniform(seed=123))(main_output)
+                       unroll=False,
+                       kernel_initializer=keras.initializers.Zeros())(main_output)
 
-    main_output = Dense(len(feature_dict["concept:name"]["to_int"]), activation='softmax', name='dense_final')(main_output)
-
+    main_output = Dense(len(feature_dict[target_variable]["to_int"]), activation='softmax', name='dense_final')(main_output)
     full_model = Model(inputs=[il], outputs=[main_output])
-    optimizerator = keras.optimizers.adam()
-    full_model.compile(loss='categorical_crossentropy', optimizer=optimizerator, metrics=['accuracy'])
+    optimizerator = keras.optimizers.SGD(lr=1)
     
-    if args.network_to_continue:
-        full_model = keras.models.load_model(args.network_to_continue)
-        
-    n_epochs = 400
+    full_model.compile(loss='categorical_crossentropy', optimizer=optimizerator, metrics=['categorical_accuracy', 'mae'])
+    
+    ### DO FINAL DATA PREPARATION
+    train_input_batches  = np.array([ t[target_variable].values.reshape((-1,1)) for t in train_traces ])
+    train_target_batches = np.array([ t.values.reshape((-1,625)) for t in train_targets])
+    
+    ### BEGIN MODEL TRAINING
+    n_epochs = 50
     best_acc = 0
+    tr_acc = 0.0
+    
     for epoch in range(1,n_epochs+1):
         mean_tr_acc  = []
         mean_tr_loss = []
+        mean_tr_mae  = []
         
-        for t_idx in tqdm(range(sep_idx, len(traces), batch_size), desc="Epoch {0}/{1}".format(epoch,n_epochs)):
-            traces_batch = traces[t_idx:t_idx+batch_size]
-            batch_x = np.array([ t["concept:name"].values.reshape((-1,1)) for t in traces_batch ])
-            batch_y = np.array([ np_utils.to_categorical(t["TARGET"].values, num_classes=625) for t in traces_batch ])
-
-            tr_loss, tr_acc = full_model.train_on_batch(batch_x, batch_y)
+        for t_idx in tqdm.tqdm(range(0, len(train_input_batches)),
+                               desc="Epoch {0}/{1} | Last accuracy {2:.2f}%".format(epoch,n_epochs, tr_acc)):
+            batch_x = train_input_batches[t_idx].reshape((1,-1,1))
+            batch_y = train_target_batches[t_idx].reshape((1,-1,625))
+            
+            tr_loss, tr_acc, tr_mae = full_model.train_on_batch(batch_x, batch_y)
             mean_tr_acc.append(tr_acc)
             mean_tr_loss.append(tr_loss)
+            mean_tr_mae.append(tr_mae)
 
-        mean_tr_acc = round(np.mean(mean_tr_acc),3)
-        print('Epoch {0} -- loss = {1:.5f} -- acc = {2:.5f}'.format(epoch,np.mean(mean_tr_loss), np.mean(mean_tr_acc)))
-        
-        if best_acc < mean_tr_acc:
-            best_acc = mean_tr_acc
-            full_model.save('evermann_baseline_e{0}_acc{1}.h5'.format(epoch,best_acc))
+        if epoch == 25: # why? See Implementation in evermann2016
+            keras.backend.set_value(full_model.optimizer.decay, .75)
+
+        tr_acc = 100*round(np.mean(mean_tr_acc),3)
+        if best_acc < tr_acc:
+            best_acc = tr_acc
+            
+            if epoch > 20:
+                full_model.save('evermann_baseline_e{0}_acc{1:.3f}.h5'.format(epoch,best_acc))
