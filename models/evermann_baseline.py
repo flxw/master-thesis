@@ -100,4 +100,4 @@ if __name__ == '__main__':
             best_acc = tr_acc
             
             if epoch > 20:
-                full_model.save('/home/felix.wolff2/docker_share/evermann_baseline_e{0}_acc{1:.3f}.h5'.format(epoch,best_acc))
+                full_model.save('/remote/evermann_baseline_e{0}_acc{1:.3f}.h5'.format(epoch,best_acc))
