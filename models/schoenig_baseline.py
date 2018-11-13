@@ -16,7 +16,7 @@ import multi_gpu_utils2 as multi_gpu_utils
 ##############################
 ##### CONFIGURATION SETUP ####
 data_path = "../logs/bpic2011.xes"
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 target_variable = "concept:name"
 ### CONFIGURATION SETUP END ###
 ###############################
@@ -83,7 +83,7 @@ if __name__ == '__main__':
     optimizerator = keras.optimizers.RMSprop()
     
 #    full_model = multi_gpu_utils.multi_gpu_model(full_model)
-    full_model.compile(loss='categorical_crossentropy', optimizer=optimizerator, metrics=['categorical_accuracy', 'mae'])
+    full_model.compile(loss='categorical_crossentropy', optimizer=optimizerator, metrics=['accuracy'])
     
     ### BEGIN MODEL TRAINING
     n_epochs = 100
@@ -95,10 +95,9 @@ if __name__ == '__main__':
     for epoch in range(1,n_epochs+1):
         mean_tr_acc  = []
         mean_tr_loss = []
-        mean_tr_mae  = []
         
         for t_idx in tqdm.tqdm(range(0, len(train_input_batches)),
-                               desc="Epoch {0}/{1} | {2:.2f}% | {3:.2f}".format(epoch,n_epochs, tr_acc_s, tr_loss_s)):
+                               desc="Epoch {0}/{1} | Last accuracy {2:.2f}% | Last loss: {3:.2f}".format(epoch,n_epochs, tr_acc_s, tr_loss_s)):
             
             # Each batch consists of a single sample, i.e. one whole trace (1)
             # A trace is represented by a variable number of timesteps (-1)
@@ -106,10 +105,9 @@ if __name__ == '__main__':
             batch_x = train_input_batches[t_idx].reshape((1,-1,n_train_cols))
             batch_y = train_target_batches[t_idx].reshape((1,-1,n_target_cols))
             
-            tr_loss, tr_acc, tr_mae = full_model.train_on_batch(batch_x, batch_y)
+            tr_loss, tr_acc = full_model.train_on_batch(batch_x, batch_y)
             mean_tr_acc.append(tr_acc)
             mean_tr_loss.append(tr_loss)
-            mean_tr_mae.append(tr_mae)
 
         tr_acc_s = 100*round(np.mean(mean_tr_acc),3)
         tr_loss_s = np.mean(mean_tr_loss)

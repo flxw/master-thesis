@@ -83,7 +83,8 @@ if __name__ == '__main__':
         mean_tr_mae  = []
         
         for t_idx in tqdm.tqdm(range(0, len(train_input_batches)),
-                               desc="Epoch {0}/{1} | Last accuracy {2:.2f}%".format(epoch,n_epochs, tr_acc)):
+                               desc="Epoch {0}/{1} | Last accuracy {2:.2f}% | Last loss: {3:.2f}".format(epoch,n_epochs, tr_acc_s, tr_loss_s)):
+	    #TODO: check this 625 number!!
             batch_x = train_input_batches[t_idx].reshape((1,-1,1))
             batch_y = train_target_batches[t_idx].reshape((1,-1,625))
             
