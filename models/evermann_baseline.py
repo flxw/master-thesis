@@ -15,7 +15,7 @@ import multi_gpu_utils2 as multi_gpu_utils
 ##############################
 ##### CONFIGURATION SETUP ####
 data_path = "../logs/bpic2011.xes"
-#os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 target_variable = "concept:name"
 ### CONFIGURATION SETUP END ###
 ###############################
@@ -64,7 +64,7 @@ if __name__ == '__main__':
     full_model = Model(inputs=[il], outputs=[main_output])
     optimizerator = keras.optimizers.SGD(lr=1)
     
-    full_model = multi_gpu_utils.multi_gpu_model(full_model)
+#    full_model = multi_gpu_utils.multi_gpu_model(full_model)
     full_model.compile(loss='categorical_crossentropy', optimizer=optimizerator, metrics=['categorical_accuracy', 'mae'])
     
     ### DO FINAL DATA PREPARATION
