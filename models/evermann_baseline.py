@@ -10,10 +10,12 @@ import tqdm
 from keras.models import Sequential, Model
 from keras.layers import Dense, Embedding, Input, Reshape, concatenate, Flatten, Activation, LSTM
 
+import multi_gpu_utils2 as multi_gpu_utils
+
 ##############################
 ##### CONFIGURATION SETUP ####
 data_path = "../logs/bpic2011.xes"
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+#os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 target_variable = "concept:name"
 ### CONFIGURATION SETUP END ###
 ###############################
@@ -49,21 +51,25 @@ if __name__ == '__main__':
                        stateful=False,
                        return_sequences=True,
                        unroll=False,
+                       dropout=0.2,
                        kernel_initializer=keras.initializers.Zeros())(main_output)
     main_output = LSTM(500,
                        stateful=False,
                        return_sequences=True,
                        unroll=False,
+                       dropout=0.2,
                        kernel_initializer=keras.initializers.Zeros())(main_output)
 
     main_output = Dense(len(feature_dict[target_variable]["to_int"]), activation='softmax', name='dense_final')(main_output)
     full_model = Model(inputs=[il], outputs=[main_output])
     optimizerator = keras.optimizers.SGD(lr=1)
     
+    full_model = multi_gpu_utils.multi_gpu_model(full_model)
     full_model.compile(loss='categorical_crossentropy', optimizer=optimizerator, metrics=['categorical_accuracy', 'mae'])
     
     ### DO FINAL DATA PREPARATION
-    train_input_batches  = np.array([ t[target_variable].values.reshape((-1,1)) for t in train_traces ])
+    train_traces = [ t[target_variable].map(feature_dict[target_variable]['to_int']).values for t in train_traces ]
+    train_input_batches  = np.array([ t.reshape((-1,1)) for t in train_traces ])
     train_target_batches = np.array([ t.values.reshape((-1,625)) for t in train_targets])
     
     ### BEGIN MODEL TRAINING
@@ -94,4 +100,4 @@ if __name__ == '__main__':
             best_acc = tr_acc
             
             if epoch > 20:
-                full_model.save('evermann_baseline_e{0}_acc{1:.3f}.h5'.format(epoch,best_acc))
+                full_model.save('/home/felix.wolff2/docker_share/evermann_baseline_e{0}_acc{1:.3f}.h5'.format(epoch,best_acc))

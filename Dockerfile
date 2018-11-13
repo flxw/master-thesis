@@ -1,6 +1,8 @@
-FROM nvidia/cuda
+ARG cuda_version=9.2
+ARG cudnn_version=7
+FROM nvidia/cuda:${cuda_version}-cudnn${cudnn_version}-devel
 
-RUN apt-get update && apt-get install -y wget git
+RUN apt-get update && apt-get install -y wget git bzip2 gcc
 RUN wget --quiet https://repo.anaconda.com/archive/Anaconda3-5.3.0-Linux-x86_64.sh -O anaconda.sh &&\
     /bin/bash anaconda.sh -b -p /opt/conda && \
     ln -s /opt/conda/etc/profile.d/conda.sh  /etc/profile.d/conda.sh && \
@@ -13,3 +15,6 @@ RUN /opt/conda/bin/conda create --name thesis --file thesis-environment.yml
 
 SHELL ["/bin/bash", "-c"]
 RUN source /opt/conda/bin/activate thesis && pip install -r requirements.txt
+
+ENV NVIDIA_VISIBLE_DEVICES all
+ENV NVIDIA_DRIVER_CAPABILITIES compute,utility

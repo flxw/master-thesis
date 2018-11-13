@@ -11,10 +11,12 @@ from keras.models import Sequential, Model
 from keras.layers import Dense, Embedding, Input, Reshape, concatenate, Flatten, Activation, LSTM
 from keras.utils import np_utils
 
+import multi_gpu_utils2 as multi_gpu_utils
+
 ##############################
 ##### CONFIGURATION SETUP ####
 data_path = "../logs/bpic2011.xes"
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+#os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 target_variable = "concept:name"
 ### CONFIGURATION SETUP END ###
 ###############################
@@ -80,6 +82,7 @@ if __name__ == '__main__':
     full_model = Model(inputs=[il], outputs=[main_output])
     optimizerator = keras.optimizers.RMSprop()
     
+    full_model = multi_gpu_utils.multi_gpu_model(full_model)
     full_model.compile(loss='categorical_crossentropy', optimizer=optimizerator, metrics=['categorical_accuracy', 'mae'])
     
     ### BEGIN MODEL TRAINING
@@ -114,4 +117,4 @@ if __name__ == '__main__':
         if best_acc < tr_acc_s :
             best_acc = round(tr_acc_s, 3)
             best_epoch = epoch
-            full_model.save('schoenig_baseline_e{0}_acc{1:.2f}.h5'.format(epoch,best_acc))
+            full_model.save('/remote/schoenig_baseline_e{0}_acc{1:.2f}.h5'.format(epoch,best_acc))

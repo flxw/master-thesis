@@ -6,7 +6,7 @@ import pandas as pd
 import re
 import os
 import itertools
-import tqdm
+from tqdm import tqdm
 
 from keras.models import Sequential, Model
 from keras.layers import Dense, Embedding, Input, Reshape, concatenate, Flatten, Activation, LSTM, Dropout
@@ -17,8 +17,8 @@ from keras.utils import np_utils
 data_path = "../logs/bpic2011.xes"
 os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 target_variable = "concept:name"
-stop_patience=5
-stop_delta=0.05
+stop_patience=20
+stop_delta=0.01
 ### CONFIGURATION SETUP END ###
 ###############################
 
@@ -85,7 +85,7 @@ def sp2_model(train_input_batches_seq, train_input_batches_sp2, train_target_bat
         mean_tr_loss = []
         mean_tr_mae  = []
         
-        for t_idx in tqdm.tqdm(range(0, len(train_input_batches_seq)),
+        for t_idx in tqdm(range(0, len(train_input_batches_seq)),
                                desc="Epoch {0}/{1} | {2:.2f}% | {3:.2f}".format(epoch,n_epochs, tr_acc_s, tr_loss_s)):
             
             # Each batch consists of a single sample, i.e. one whole trace (1)
@@ -106,7 +106,7 @@ def sp2_model(train_input_batches_seq, train_input_batches_sp2, train_target_bat
         if best_acc < tr_acc_s:
             best_acc = tr_acc_s
             
-        if stop_delta > (last_loss-mean_tr_loss):
+        if stop_delta > (last_loss-tr_loss_s):
             patience_counter+=1
         else:
             patience_counter = 0
@@ -114,6 +114,8 @@ def sp2_model(train_input_batches_seq, train_input_batches_sp2, train_target_bat
         if patience_counter == stop_patience:
             tqdm.write("Reached early-stopping threshold!")
             break;
+            
+        last_loss = tr_loss_s
 
     return best_acc, full_model
 
@@ -187,6 +189,7 @@ if __name__ == '__main__':
     winner_model = 0
     winner_params = None
     for param_combo in dict_product(params):
+        print("Testing hyperparameter combination:", param_combo)
         acc,model = sp2_model(train_input_batches_seq,
                   train_input_batches_sp2,
                   train_target_batches, 
@@ -204,7 +207,6 @@ if __name__ == '__main__':
     pickle.dump(winner_params, open("sp2_hypertuning_winner_params", "wb"), protocol=pickle.HIGHEST_PROTOCOL)
 
     
-    print("Evalutation of best performing model:")
-    print(winner_model.evaluate({'seq_input': test_input_batches_seq, 'sp2_input': test_input_batches_sp2}, test_target_batches, batch_size=1))
-    print("Best performing model chosen hyper-parameters:")
-    print(best_run)
+    #print(winner_model.evaluate({'seq_input': test_input_batches_seq, 'sp2_input': test_input_batches_sp2}, test_target_batches, batch_size=1))
+    #print("Best performing model chosen hyper-parameters:")
+    #print(best_run)
