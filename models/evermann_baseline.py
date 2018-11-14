@@ -34,8 +34,6 @@ if __name__ == '__main__':
     ### BEGIN DATA LOADING
     train_traces = load_trace_dataset('categorical', 'train')
     train_targets = load_trace_dataset('target', 'train')
-    test_traces = load_trace_dataset('categorical', 'test')
-    test_targets = load_trace_dataset('target', 'test')
     feature_dict = load_trace_dataset('mapping', 'dict')
     
     ### BEGIN MODEL CONSTRUCTION
@@ -101,4 +99,4 @@ if __name__ == '__main__':
             best_acc = tr_acc
             
             if epoch > 20:
-                full_model.save('/remote/evermann_baseline_e{0}_acc{1:.3f}.h5'.format(epoch,best_acc))
+                full_model.save('/remote/evermann_baseline_e{0}.h5'.format(epoch,best_acc))

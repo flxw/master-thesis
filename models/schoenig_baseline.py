@@ -112,7 +112,7 @@ if __name__ == '__main__':
         tr_acc_s = 100*round(np.mean(mean_tr_acc),3)
         tr_loss_s = np.mean(mean_tr_loss)
 
-        if best_acc < tr_acc_s :
+        if best_acc < tr_acc_s:
             best_acc = tr_acc_s
             best_epoch = epoch
-            full_model.save('/remote/schoenig_baseline_e{0}_acc{1:.2f}.h5'.format(epoch,best_acc))
+            full_model.save('/remote/schoenig_baseline_e{0}.h5'.format(epoch,best_acc))
