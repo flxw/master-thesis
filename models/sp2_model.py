@@ -201,8 +201,8 @@ if __name__ == '__main__':
             winner_model = model
             winner_params = param_combo
             
-    winner_model.save('sp2_hypertuning_winner_acc{0:.2f}.h5'.format(winner_acc))
-    pickle.dump(winner_params, open("sp2_hypertuning_winner_params", "wb"), protocol=pickle.HIGHEST_PROTOCOL)
+    winner_model.save('/remote/sp2_hypertuning_winner_acc{0:.2f}.h5'.format(winner_acc))
+    pickle.dump(winner_params, open("/remote/sp2_hypertuning_winner_params", "wb"), protocol=pickle.HIGHEST_PROTOCOL)
 
     
     #print(winner_model.evaluate({'seq_input': test_input_batches_seq, 'sp2_input': test_input_batches_sp2}, test_target_batches, batch_size=1))
