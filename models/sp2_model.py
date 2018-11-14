@@ -15,10 +15,10 @@ from keras.utils import np_utils
 ##############################
 ##### CONFIGURATION SETUP ####
 data_path = "../logs/bpic2011.xes"
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '2'
 target_variable = "concept:name"
-stop_patience=20
-stop_delta=0.01
+stop_patience=30
+stop_delta=0.001
 ### CONFIGURATION SETUP END ###
 ###############################
 
@@ -70,7 +70,7 @@ def sp2_model(train_input_batches_seq, train_input_batches_sp2, train_target_bat
 
     full_model.compile(loss='categorical_crossentropy',
                        optimizer=params['optimizer'],
-                       metrics=['categorical_accuracy', 'mae'])
+                       metrics=['categorical_accuracy'])
     
     ### BEGIN MODEL TRAINING
     n_epochs = params['epochs']
@@ -83,11 +83,9 @@ def sp2_model(train_input_batches_seq, train_input_batches_sp2, train_target_bat
     for epoch in range(1,n_epochs+1):
         mean_tr_acc  = []
         mean_tr_loss = []
-        mean_tr_mae  = []
         
         for t_idx in tqdm(range(0, len(train_input_batches_seq)),
-                               desc="Epoch {0}/{1} | {2:.2f}% | {3:.2f}".format(epoch,n_epochs, tr_acc_s, tr_loss_s)):
-            
+                               desc="Epoch {0}/{1} | Last accuracy {2:.2f}% | Last loss: {3:.2f}".format(epoch,n_epochs, tr_acc_s, tr_loss_s)):
             # Each batch consists of a single sample, i.e. one whole trace (1)
             # A trace is represented by a variable number of timesteps (-1)
             # And finally, each timestep contains n_train_cols variables
@@ -95,10 +93,9 @@ def sp2_model(train_input_batches_seq, train_input_batches_sp2, train_target_bat
             batch_x_sp2 = train_input_batches_sp2[t_idx].reshape((1,-1,n_sp2_cols))
             batch_y = train_target_batches[t_idx].reshape((1,-1,n_target_cols))
             
-            tr_loss, tr_acc, tr_mae = full_model.train_on_batch({'seq_input': batch_x_seq, 'sp2_input': batch_x_sp2}, batch_y)
+            tr_loss, tr_acc = full_model.train_on_batch({'seq_input': batch_x_seq, 'sp2_input': batch_x_sp2}, batch_y)
             mean_tr_acc.append(tr_acc)
             mean_tr_loss.append(tr_loss)
-            mean_tr_mae.append(tr_mae)
             
         tr_acc_s = 100*round(np.mean(mean_tr_acc),3)
         tr_loss_s = np.mean(mean_tr_loss)
@@ -127,16 +124,10 @@ if __name__ == '__main__':
     
     ### BEGIN DATA LOADING
     train_traces_categorical = load_trace_dataset('categorical', 'train')
-    train_traces_ordinal = load_trace_dataset('ordinal', 'train')
-    train_targets = load_trace_dataset('target', 'train')
-    train_traces_sp2 = load_trace_dataset('sp2', 'train')
-
-    test_traces_categorical = load_trace_dataset('categorical', 'test')
-    test_traces_ordinal = load_trace_dataset('ordinal', 'test')
-    test_targets = load_trace_dataset('target', 'test')
-    test_traces_sp2 = load_trace_dataset('sp2', 'test')
-
-    feature_dict = load_trace_dataset('mapping', 'dict')
+    train_traces_ordinal     = load_trace_dataset('ordinal', 'train')
+    train_targets            = load_trace_dataset('target', 'train')
+    train_traces_sp2         = load_trace_dataset('sp2', 'train')
+    feature_dict             = load_trace_dataset('mapping', 'dict')
     
     ### DO FINAL DATA PREPARATION
     # Use one-hot encoding for categorical values in training and test set
@@ -178,9 +169,9 @@ if __name__ == '__main__':
     
     ### DEFINE HYPER-PARAMETER TUNING RANGE
     params = {
-        'epochs': [100],
+        'epochs': [200],
         'optimizer': ['rmsprop', 'adam', 'sgd'],
-        'dropout': [0, .5] # .5 is chainer default and was used by Shibata et al.
+        'dropout': [0, .3, .5] # .5 is chainer default and was used by Shibata et al.
     }
     
     # all the hyperoptimization libraries suck if you do not use fit
@@ -208,5 +199,5 @@ if __name__ == '__main__':
 
     
     #print(winner_model.evaluate({'seq_input': test_input_batches_seq, 'sp2_input': test_input_batches_sp2}, test_target_batches, batch_size=1))
-    #print("Best performing model chosen hyper-parameters:")
-    #print(best_run)
+    print("Best performing model chosen hyper-parameters:")
+    print(winner_params)
