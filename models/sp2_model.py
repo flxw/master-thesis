@@ -65,7 +65,7 @@ def sp2_model(train_input_batches_seq, train_input_batches_sp2, train_target_bat
 
     # SP2 input here
     il2 = Input(batch_shape=(batch_size,None,n_sp2_cols), name="sp2_input")
-    sp2 = Dense(sp2_unit_count)
+    sp2 = Dense(sp2_unit_count)(il2)
     
     main_output = concatenate([main_output, sp2], axis=-1)
 #     main_output = Dropout(params['dropout'])(main_output)
