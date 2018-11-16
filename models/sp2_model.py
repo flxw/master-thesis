@@ -42,26 +42,33 @@ def sp2_model(train_input_batches_seq, train_input_batches_sp2, train_target_bat
     ### BEGIN MODEL CONSTRUCTION
     batch_size = None # None translates to unknown batch size
     seq_unit_count = n_seq_cols + n_target_cols
+    sp2_unit_count = n_sp2_cols + n_target_cols
 
     # array format: [samples, time steps, features]
     il = Input(batch_shape=(batch_size,None,n_seq_cols), name="seq_input")
 
     # sizes should be multiple of 32 since it trains faster due to np.float32
+    # main feature input here, basically same as schoenig
     main_output = LSTM(seq_unit_count,
                        batch_input_shape=(batch_size,None,n_seq_cols),
                        stateful=False,
                        return_sequences=True,
                        unroll=False,
-                       kernel_initializer=keras.initializers.Zeros())(il)
+                       kernel_initializer=keras.initializers.Zeros(),
+                       dropout=params['dropout'])(il)
     main_output = LSTM(seq_unit_count,
                        stateful=False,
                        return_sequences=True,
                        unroll=False,
-                       kernel_initializer=keras.initializers.Zeros())(main_output)
+                       kernel_initializer=keras.initializers.Zeros(),
+                       dropout=params['dropout'])(main_output)
 
+    # SP2 input here
     il2 = Input(batch_shape=(batch_size,None,n_sp2_cols), name="sp2_input")
-    main_output = concatenate([main_output, il2], axis=-1)
-    main_output = Dropout(params['dropout'])(main_output)
+    sp2 = Dense(sp2_unit_count)
+    
+    main_output = concatenate([main_output, sp2], axis=-1)
+#     main_output = Dropout(params['dropout'])(main_output)
     main_output = Dense(n_target_cols, activation=keras.activations.relu)(main_output)
     main_output = Dropout(params['dropout'])(main_output)
     main_output = Activation(keras.activations.sigmoid)(main_output)
@@ -178,7 +185,7 @@ if __name__ == '__main__':
     params = {
         'epochs': [100],
         'optimizer': ['rmsprop', 'adam', 'sgd'],
-        'dropout': [0, .5] # .5 is chainer default and was used by Shibata et al.
+        'dropout': [0.1, 0.3, 0.5]
     }
     
     # all the hyperoptimization libraries suck if you do not use fit
