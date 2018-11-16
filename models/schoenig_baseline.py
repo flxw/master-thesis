@@ -115,4 +115,6 @@ if __name__ == '__main__':
         if best_acc < tr_acc_s:
             best_acc = tr_acc_s
             best_epoch = epoch
-            full_model.save('/remote/schoenig_baseline_e{0}.h5'.format(epoch,best_acc))
+            
+            if best_acc > 40:
+                full_model.save('/remote/schoenig_baseline_e{0}.h5'.format(epoch,best_acc))
