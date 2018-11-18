@@ -17,7 +17,7 @@ import multi_gpu_utils2 as multi_gpu_utils
 ##### CONFIGURATION SETUP ####
 remote_path = "/home/felix.wolff2/docker_share"
 data_path = "../logs/normalized/bpic2011.xes"
-os.environ['CUDA_VISIBLE_DEVICES'] = '0,1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3'
 target_variable = "concept:name"
 ### CONFIGURATION SETUP END ###
 ###############################
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     train_traces_targets = load_trace_dataset('target', 'train')
     test_traces_categorical = load_trace_dataset('categorical', 'test')
     test_traces_ordinal = load_trace_dataset('ordinal', 'test')
-    test_targets = load_trace_dataset('target', 'test')
+    test_traces_targets = load_trace_dataset('target', 'test')
     feature_dict = load_trace_dataset('mapping', 'dict')
     
     ### DO FINAL DATA PREPARATION
@@ -53,9 +53,17 @@ if __name__ == '__main__':
 
             train_traces_categorical[i].drop(columns=[col], inplace=True)
             train_traces_categorical[i] = pd.concat([train_traces_categorical[i], tmp], axis=1)
+        for i in range(0, len(test_traces_categorical)):
+            tmp = test_traces_categorical[i][col].map(feature_dict[col]['to_int'])
+            tmp = np_utils.to_categorical(tmp, num_classes=nc)
+            tmp = pd.DataFrame(tmp).add_prefix(col)
+
+            test_traces_categorical[i].drop(columns=[col], inplace=True)
+            test_traces_categorical[i] = pd.concat([test_traces_categorical[i], tmp], axis=1)
     
     # tie everything together since we only have a single input layer
     train_traces = [ pd.concat([a,b], axis=1) for a,b in zip(train_traces_ordinal, train_traces_categorical)]
+    test_traces  = [ pd.concat([a,b], axis=1) for a,b in zip(test_traces_ordinal, test_traces_categorical)]
     n_train_cols  = len(train_traces[0].columns)
     n_target_cols = len(train_traces_targets[0].columns)
     mlen = int(np.mean([len(t) for t in train_traces]) * 1.25)
@@ -63,6 +71,7 @@ if __name__ == '__main__':
     train_inputs  = keras.preprocessing.sequence.pad_sequences(train_traces, maxlen=mlen, padding='pre')
     train_targets = keras.preprocessing.sequence.pad_sequences(train_traces_targets, maxlen=mlen, padding='pre')
     assert(len(train_inputs) == len(train_targets))
+    assert(sum([len(t) for t in train_inputs]) == sum([len(t) for t in train_targets]))
     assert(sum([len(t) for t in train_inputs]) == sum([len(t) for t in train_targets]))
     
     ### BEGIN MODEL CONSTRUCTION
@@ -108,6 +117,7 @@ if __name__ == '__main__':
 
     history = full_model.fit(x=train_inputs,
                              y=train_targets,
+                             validation_data=(test_traces,test_traces_targest),
                              batch_size=32,
                              epochs=100,
                              verbose=2)
