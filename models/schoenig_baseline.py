@@ -15,8 +15,9 @@ import multi_gpu_utils2 as multi_gpu_utils
 
 ##############################
 ##### CONFIGURATION SETUP ####
-data_path = "../logs/bpic2011.xes"
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+remote_path = "/home/felix.wolff2/docker_share"
+data_path = "../logs/normalized/bpic2011.xes"
+os.environ['CUDA_VISIBLE_DEVICES'] = '0,1'
 target_variable = "concept:name"
 ### CONFIGURATION SETUP END ###
 ###############################
@@ -35,7 +36,7 @@ if __name__ == '__main__':
     ### BEGIN DATA LOADING
     train_traces_categorical = load_trace_dataset('categorical', 'train')
     train_traces_ordinal = load_trace_dataset('ordinal', 'train')
-    train_targets = load_trace_dataset('target', 'train')
+    train_traces_targets = load_trace_dataset('target', 'train')
     test_traces_categorical = load_trace_dataset('categorical', 'test')
     test_traces_ordinal = load_trace_dataset('ordinal', 'test')
     test_targets = load_trace_dataset('target', 'test')
@@ -56,10 +57,13 @@ if __name__ == '__main__':
     # tie everything together since we only have a single input layer
     train_traces = [ pd.concat([a,b], axis=1) for a,b in zip(train_traces_ordinal, train_traces_categorical)]
     n_train_cols  = len(train_traces[0].columns)
-    n_target_cols = len(train_targets[0].columns)
-    
-    train_input_batches  = np.array([ t.values.reshape((-1,n_train_cols))  for t in train_traces ])
-    train_target_batches = np.array([ t.values.reshape((-1,n_target_cols)) for t in train_targets])
+    n_target_cols = len(train_traces_targets[0].columns)
+    mlen = int(np.mean([len(t) for t in train_traces]) * 1.25)
+
+    train_inputs  = keras.preprocessing.sequence.pad_sequences(train_traces, maxlen=mlen, padding='pre')
+    train_targets = keras.preprocessing.sequence.pad_sequences(train_traces_targets, maxlen=mlen, padding='pre')
+    assert(len(train_inputs) == len(train_targets))
+    assert(sum([len(t) for t in train_inputs]) == sum([len(t) for t in train_targets]))
     
     ### BEGIN MODEL CONSTRUCTION
     batch_size = None # None translates to unknown batch size
@@ -82,39 +86,28 @@ if __name__ == '__main__':
     full_model = Model(inputs=[il], outputs=[main_output])
     optimizerator = keras.optimizers.RMSprop()
     
-#    full_model = multi_gpu_utils.multi_gpu_model(full_model)
+    full_model = multi_gpu_utils.multi_gpu_model(full_model)
     full_model.compile(loss='categorical_crossentropy', optimizer=optimizerator, metrics=['accuracy'])
     
     ### BEGIN MODEL TRAINING
     n_epochs = 100
-    best_acc = 0
-    best_epoch = 0
-    tr_acc_s = 0.0
-    tr_loss_s = 0.0
-    
-    for epoch in range(1,n_epochs+1):
-        mean_tr_acc  = []
-        mean_tr_loss = []
-        
-        for t_idx in tqdm.tqdm(range(0, len(train_input_batches)),
-                               desc="Epoch {0}/{1} | Last accuracy {2:.2f}% | Last loss: {3:.2f}".format(epoch,n_epochs, tr_acc_s, tr_loss_s)):
-            
-            # Each batch consists of a single sample, i.e. one whole trace (1)
-            # A trace is represented by a variable number of timesteps (-1)
-            # And finally, each timestep contains n_train_cols variables
-            batch_x = train_input_batches[t_idx].reshape((1,-1,n_train_cols))
-            batch_y = train_target_batches[t_idx].reshape((1,-1,n_target_cols))
-            
-            tr_loss, tr_acc = full_model.train_on_batch(batch_x, batch_y)
-            mean_tr_acc.append(tr_acc)
-            mean_tr_loss.append(tr_loss)
+    early_stopper = keras.callbacks.EarlyStopping(monitor='loss',
+                                                  min_delta=0,
+                                                  patience=20,
+                                                  verbose=1,
+                                                  mode='auto',
+                                                  baseline=None,
+                                                  restore_best_weights=False)
+    checkpointer = keras.callbacks.ModelCheckpoint(remote_path + "/schoenig_weights.{epoch:02d}-{val_loss:.2f}.hdf5",
+                                                   monitor='loss',
+                                                   verbose=1,
+                                                   save_best_only=True,
+                                                   save_weights_only=False,
+                                                   mode='auto',
+                                                   period=1)
 
-        tr_acc_s = 100*round(np.mean(mean_tr_acc),3)
-        tr_loss_s = np.mean(mean_tr_loss)
-
-        if best_acc < tr_acc_s:
-            best_acc = tr_acc_s
-            best_epoch = epoch
-            
-            if best_acc > 40:
-                full_model.save('/remote/schoenig_baseline_e{0}.h5'.format(epoch,best_acc))
+    history = full_model.fit(x=train_inputs,
+                             y=train_targets,
+                             batch_size=32,
+                             epochs=100,
+                             verbose=2)
