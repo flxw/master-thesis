@@ -117,7 +117,7 @@ if __name__ == '__main__':
 
     history = full_model.fit(x=train_inputs,
                              y=train_targets,
-                             validation_data=(test_traces,test_traces_targest),
+                             validation_data=(test_traces,test_traces_targets),
                              batch_size=32,
                              epochs=100,
                              verbose=2)
