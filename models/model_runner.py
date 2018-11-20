@@ -36,33 +36,48 @@ target_variable = "concept:name"
 
 
 ### BEGIN ################################################################
-if args.model == 'schoenig':
+if args.model == 'evermann':
+    pass
+elif args.model == 'schoenig':
     import schoenig_builder as model_builder
     n_epochs = 100
     os.environ['CUDA_VISIBLE_DEVICES'] = '1'
-# TODO import evermann etc
+elif args.model == 'sp2':
+    import sp2_builder as model_builder
+    n_epochs = 150
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+elif args.model == 'pfs':
+    pass
+else:
+    os.exit(0)
 
 train_X, train_Y, test_X, test_Y, model = model_builder.prepare(args.datapath, target_variable)
 statistics = pd.DataFrame(columns=['loss', 'acc', 'val_loss', 'val_acc', 'training_time', 'validation_time'], index=range(0,n_epochs), dtype=np.float32)
 
 if args.mode == 'padded':
     # make cutoff step a function of the trace length in each percentile
-    mlen = math.ceil(np.percentile([len(t) for t in train_X], 80))
+    mlen = math.ceil(np.percentile([len(t) for t in train_Y], 80))
     
     # remove traces from training which are longer than mlen since they'll be removed anyway
-    train_X = list(filter(lambda t: len(t) <= mlen, train_X))
     train_Y = list(filter(lambda t: len(t) <= mlen, train_Y))
-    test_X  = list(filter(lambda t: len(t) <= mlen, test_X))
     test_Y  = list(filter(lambda t: len(t) <= mlen, test_Y))
     
+    for layer_name in test_X.keys():
+        test_X[layer_name]  = list(filter(lambda t: len(t) <= mlen, test_X[layer_name]))
+        train_X[layer_name] = list(filter(lambda t: len(t) <= mlen, train_X[layer_name]))
+    
     # now pad all sequences to same length
-    train_inputs  = pad_sequences(train_X, padding='pre')
-    train_targets = pad_sequences(train_Y, padding='pre')
-    test_inputs   = pad_sequences(test_X,  padding='pre')
-    test_targets  = pad_sequences(test_Y,   padding='pre')
+    train_targets = pad_sequences(train_Y, padding='post')
+    test_targets  = pad_sequences(test_Y,  padding='post')
+    
+    test_inputs = {}
+    train_inputs = {}
+    for layer_name in test_X.keys():
+        test_inputs[layer_name]  = pad_sequences(test_X[layer_name],  padding='post')
+        train_inputs[layer_name] = pad_sequences(train_X[layer_name], padding='post')
     
     ### BEGIN MODEL TRAINING
-    batch_size = 32 # TODO: TUNE!!
+    batch_size = math.ceil(0.01*len(train_Y))
     early_stopper = EarlyStopping(monitor='val_loss',
                                                   min_delta=0,
                                                   patience=20,
@@ -70,47 +85,58 @@ if args.mode == 'padded':
                                                   mode='auto',
                                                   baseline=None,
                                                   restore_best_weights=False)
-    checkpointer = ModelCheckpoint("{0}/{1}/{2}/".format(remote_path, args.model, args.mode) + "weights.{epoch:02d}-{val_loss:.2f}.hdf5",
+    checkpointer = ModelCheckpoint("{0}/{1}/{2}/".format(remote_path, args.model, args.mode) + "model.{epoch:02d}-{val_loss:.2f}.hdf5",
                                                    monitor='val_loss',
                                                    verbose=1,
                                                    save_best_only=True,
                                                    save_weights_only=False,
                                                    mode='auto',
                                                    period=1)
-    cb = StatisticsCallback(training_batchcount=math.ceil(len(train_inputs)/batch_size), statistics_df=statistics)
+    scb = StatisticsCallback(training_batchcount=math.ceil(len(train_inputs)/batch_size),
+                             statistics_df=statistics,
+                             accuracy_metric=model.metrics[0])
 
     history = model.fit(x=train_inputs,
                         y=train_targets,
                         validation_data=(test_inputs,test_targets),
                         batch_size=batch_size,
-                        callbacks=[early_stopper,checkpointer],
+                        callbacks=[early_stopper,checkpointer,scb],
                         epochs=n_epochs,
                         verbose=1)
 
 
 if args.mode == 'grouped':
-    n_X_cols = train_X[0].shape[1]
+    n_X_cols = train_X['seq_input'][0].shape[1]
     n_Y_cols = train_Y[0].shape[1]
 
-    grouped_train_X = {}
-    grouped_train_Y = {}
+    # loop through every dictionary key and group (since the elements had the same order before, they should have after)
+    for input_name in train_X.keys():
+        layer_train_X = train_X[input_name]
+        grouped_train_X = {}
+        grouped_train_Y = {}
 
-    # create a dictionary entry for every timeseries length and put the traces in the appropriate bins
-    for i in range(0,len(train_X)):
-        tl = len(train_X[i])
-        
-        if tl in grouped_train_X:
-            np.append(grouped_train_X[tl], train_X[i])
-            np.append(grouped_train_Y[tl], train_Y[i])
-        else:
-            grouped_train_X[tl] = np.array([train_X[i]])
-            grouped_train_Y[tl] = np.array([train_Y[i]])
-        
-    grouped_train_X = list(grouped_train_X.values())
-    grouped_train_Y = list(grouped_train_Y.values())
+        # create a dictionary entry for every timeseries length and put the traces in the appropriate bin
+        for i in range(0,len(layer_train_X)):
+            tl = len(layer_train_X[i])
+            elX = np.array(layer_train_X[i])
+
+            if tl in grouped_train_X:
+                grouped_train_X[tl].append(elX)
+
+                if (len(layer_train_X) == len(train_Y)):
+                    grouped_train_Y[tl].append(train_Y[i])
+            else:
+                grouped_train_X[tl] = [elX]
+
+                if (len(layer_train_X) == len(train_Y)):
+                    grouped_train_Y[tl] = [train_Y[i]]
+
+        train_X[input_name] = np.array([np.array(l) for l in grouped_train_X.values()])
+
+        if (len(layer_train_X) == len(train_Y)):
+            train_Y = np.array([np.array(l) for l in grouped_train_Y.values()])
     
     ### BEGIN TRAINING
-    #        batch_statistics = np.array([], dtype=[(colname, np.float32) for colname in (model.loss + model.metrics)])    
     last_acc = 0
     last_loss = 0
     last_val_acc = 0
@@ -125,14 +151,18 @@ if args.mode == 'grouped':
         
         # training an epoch
         t_start = time.time()
-        for batch_x, batch_y in tqdm.tqdm(zip(grouped_train_X, grouped_train_Y),
-                                          desc="acc: {0:.2f}% | loss: {1:.2f}% | val_acc {2:.2f}% | val_loss: {3:.2f}".format(np.mean(tr_accs)*100,
+        for batch_id in tqdm.trange(len(train_Y),
+                                          desc="acc: {0:.2f} | loss: {1:.2f} | val_acc {2:.2f} | val_loss: {3:.2f}".format(np.mean(tr_accs),
                                                                                                                               np.mean(tr_losses),
-                                                                                                                              np.mean(val_accs)*100,
+                                                                                                                              np.mean(val_accs),
                                                                                                                               np.mean(val_losses))):
             # Each batch consists of a single sample, i.e. one whole trace (1)
             # A trace is represented by a variable number of timesteps (-1)
             # And finally, each timestep contains n_train_cols variables
+            samples = len(train_X['seq_input'][batch_id])
+            batch_y = train_Y[batch_id].reshape((samples,-1,n_Y_cols))
+            batch_x = { layer_name:train_X[layer_name][batch_id] for layer_name in train_X.keys() }
+            
             l,a = model.train_on_batch(batch_x, batch_y)
             tr_losses.append(l)
             tr_accs.append(a)
@@ -140,9 +170,9 @@ if args.mode == 'grouped':
         
         # validating the epoch result
         t_start = time.time()
-        for batch_x, batch_y in zip(test_X, test_Y):
-            batch_x = batch_x.reshape((1,-1,n_X_cols))
-            batch_y = batch_y.reshape((1,-1,n_Y_cols))
+        for batch_id in range(len(test_Y)):
+            batch_y = test_Y[batch_id].reshape((1,-1,n_Y_cols))
+            batch_x = { layer_name:test_X[layer_name][batch_id].reshape((1,-1,n_X_cols)) for layer_name in test_X.keys() }
             
             l,a = model.evaluate(x=batch_x, y=batch_y, batch_size=1, verbose=0)
             val_losses.append(l)
@@ -157,6 +187,7 @@ if args.mode == 'grouped':
                                       validation_time]
         
         if best_val_acc < last_val_acc:
+            print("Increased accuracy from {0:.2f}% to {1:.2f}% - saving model!".format(best_val_acc*100, last_val_acc*100))
             best_val_acc = last_val_acc
             model.save("{0}/{1}/{2}/best_val_acc_e{3}.hdf5".format(remote_path, args.model, args.mode, epoch))
     
