@@ -65,14 +65,14 @@ def pfs_model(train_input_batches_seq, train_input_batches_pfs, train_target_bat
                        dropout=params['dropout'])(main_output)
 
     # PFS input here
-    il2 = Input(batch_shape=(batch_size,None,n_pfs_cols), name="pfs_input")
+    il2 = Input(batch_shape=(batch_size,None,n_pfs_cols), name="sec_input")
     pfs = Dense(pfs_unit_count)(il2)
     
     main_output = concatenate([main_output, pfs], axis=-1)
 #     main_output = Dropout(params['dropout'])(main_output)
     main_output = Dense(n_target_cols, activation=keras.activations.relu)(main_output)
     main_output = Dropout(params['dropout'])(main_output)
-    main_output = Activation(keras.activations.sigmoid)(main_output)
+    main_output = Activation(keras.activations.tanh)(main_output)
 
     full_model = Model(inputs=[il, il2], outputs=[main_output])
 
@@ -102,7 +102,7 @@ def pfs_model(train_input_batches_seq, train_input_batches_pfs, train_target_bat
             batch_x_pfs = train_input_batches_pfs[t_idx].reshape((1,-1,n_pfs_cols))
             batch_y = train_target_batches[t_idx].reshape((1,-1,n_target_cols))
             
-            tr_loss, tr_acc = full_model.train_on_batch({'seq_input': batch_x_seq, 'pfs_input': batch_x_pfs}, batch_y)
+            tr_loss, tr_acc = full_model.train_on_batch({'seq_input': batch_x_seq, 'sec_input': batch_x_pfs}, batch_y)
             mean_tr_acc.append(tr_acc)
             mean_tr_loss.append(tr_loss)
             
@@ -185,7 +185,7 @@ if __name__ == '__main__':
     ### DEFINE HYPER-PARAMETER TUNING RANGE
     params = {
         'epochs': [100],
-        'optimizer': ['rmsprop', 'adam', 'sgd'],
+        'optimizer': ['rmsprop', 'adam', 'adagrad'],
         'dropout': [0.1, 0.3, 0.5]
     }
     

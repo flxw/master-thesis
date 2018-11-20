@@ -1,3 +1,4 @@
+import tensorflow as tf
 import keras
 import pickle
 import random
@@ -7,15 +8,26 @@ import re
 import os
 import itertools
 from tqdm import tqdm
+import json
 
 from keras.models import Sequential, Model
-from keras.layers import Dense, Embedding, Input, Reshape, concatenate, Flatten, Activation, LSTM, Dropout
+from keras.layers import Dense, Embedding, Input, Reshape, concatenate, ReLU, Activation, LSTM, Dropout
 from keras.utils import np_utils
+
+def write_log(callback, names, logs, batch_no, tuning_parameters):
+    for name, value in zip(names, logs):
+        summary = tf.Summary()
+        summary_value = summary.value.add()
+        summary_value.simple_value = value
+        summary_value.tag = name
+        callback.writer.add_summary(summary, batch_no)
+        callback.writer.flush()
 
 ##############################
 ##### CONFIGURATION SETUP ####
-data_path = "../logs/bpic2011.xes"
-os.environ['CUDA_VISIBLE_DEVICES'] = '2'
+log_path  = "/home/felix.wolff2/docker_share/sp2_logs"
+data_path = "../logs/normalized/bpic2011.xes"
+os.environ['CUDA_VISIBLE_DEVICES'] = '4,5'
 target_variable = "concept:name"
 stop_patience=20
 stop_delta=0.01
@@ -48,30 +60,30 @@ def sp2_model(train_input_batches_seq, train_input_batches_sp2, train_target_bat
     il = Input(batch_shape=(batch_size,None,n_seq_cols), name="seq_input")
 
     # sizes should be multiple of 32 since it trains faster due to np.float32
-    # main feature input here, basically same as schoenig
     main_output = LSTM(seq_unit_count,
                        batch_input_shape=(batch_size,None,n_seq_cols),
                        stateful=False,
                        return_sequences=True,
                        unroll=False,
-                       kernel_initializer=keras.initializers.Zeros(),
+                       kernel_initializer=keras.initializers.glorot_normal(),
                        dropout=params['dropout'])(il)
     main_output = LSTM(seq_unit_count,
                        stateful=False,
                        return_sequences=True,
                        unroll=False,
-                       kernel_initializer=keras.initializers.Zeros(),
+                       kernel_initializer=keras.initializers.glorot_normal(),
                        dropout=params['dropout'])(main_output)
 
     # SP2 input here
-    il2 = Input(batch_shape=(batch_size,None,n_sp2_cols), name="sp2_input")
-    sp2 = Dense(sp2_unit_count)(il2)
+    il2 = Input(batch_shape=(batch_size,None,n_sp2_cols), name="sec_input")
+    sp2 = Dense(sp2_unit_count, activation='relu')(il2)
     
     main_output = concatenate([main_output, sp2], axis=-1)
-#     main_output = Dropout(params['dropout'])(main_output)
-    main_output = Dense(n_target_cols, activation=keras.activations.relu)(main_output)
     main_output = Dropout(params['dropout'])(main_output)
-    main_output = Activation(keras.activations.sigmoid)(main_output)
+    main_output = Dense(n_target_cols, activation='relu')(main_output)
+    main_output = Dropout(params['dropout'])(main_output)
+    main_output = Dense(n_target_cols, activation='softmax')(main_output)
+    # add softmax activation for classification and play with relu for hidden layers
 
     full_model = Model(inputs=[il, il2], outputs=[main_output])
 
@@ -79,8 +91,12 @@ def sp2_model(train_input_batches_seq, train_input_batches_sp2, train_target_bat
                        optimizer=params['optimizer'],
                        metrics=['categorical_accuracy'])
     
+    ### SET UP MODEL LOGGING
+    callback = keras.callbacks.TensorBoard(log_path)
+    callback.set_model(full_model)
+    
     ### BEGIN MODEL TRAINING
-    n_epochs = params['epochs']
+    n_epochs = 150
     best_acc = 0
     tr_acc_s = 0.0
     tr_loss_s = 0
@@ -101,9 +117,12 @@ def sp2_model(train_input_batches_seq, train_input_batches_sp2, train_target_bat
             batch_x_sp2 = train_input_batches_sp2[t_idx].reshape((1,-1,n_sp2_cols))
             batch_y = train_target_batches[t_idx].reshape((1,-1,n_target_cols))
             
-            tr_loss, tr_acc = full_model.train_on_batch({'seq_input': batch_x_seq, 'sp2_input': batch_x_sp2}, batch_y)
+            tr_loss, tr_acc = full_model.train_on_batch({'seq_input': batch_x_seq, 'sec_input': batch_x_sp2}, batch_y)
             mean_tr_acc.append(tr_acc)
             mean_tr_loss.append(tr_loss)
+            
+            # Log results from batch
+            write_log(callback, ['train_loss','train_acc'], (tr_loss,tr_acc), t_idx, params)
             
         tr_acc_s = 100*round(np.mean(mean_tr_acc),3)
         tr_loss_s = np.mean(mean_tr_loss)
@@ -183,8 +202,7 @@ if __name__ == '__main__':
     
     ### DEFINE HYPER-PARAMETER TUNING RANGE
     params = {
-        'epochs': [100],
-        'optimizer': ['rmsprop', 'adam', 'sgd'],
+        'optimizer': ['adagrad', 'rmsprop', 'adam' ],
         'dropout': [0.1, 0.3, 0.5]
     }
     
@@ -208,8 +226,8 @@ if __name__ == '__main__':
             winner_model = model
             winner_params = param_combo
             
-    winner_model.save('/remote/sp2_hypertuning_winner_acc{0:.2f}.h5'.format(winner_acc))
-    pickle.dump(winner_params, open("/remote/sp2_hypertuning_winner_params", "wb"), protocol=pickle.HIGHEST_PROTOCOL)
+    winner_model.save('/home/felix.wolff2/docker_share/sp2_hypertuning_winner_acc{0:.2f}.h5'.format(winner_acc))
+    pickle.dump(winner_params, open("/home/felix.wolff2/docker_share/sp2_hypertuning_winner_params", "wb"), protocol=pickle.HIGHEST_PROTOCOL)
 
     
     #print(winner_model.evaluate({'seq_input': test_input_batches_seq, 'sp2_input': test_input_batches_sp2}, test_target_batches, batch_size=1))
