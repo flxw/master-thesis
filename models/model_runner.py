@@ -137,25 +137,22 @@ if args.mode == 'grouped':
             train_Y = np.array([np.array(l) for l in grouped_train_Y.values()])
     
     ### BEGIN TRAINING
-    last_acc = 0
-    last_loss = 0
+    last_tr_acc = 0
+    last_tr_loss = 0
     last_val_acc = 0
     last_val_loss = 0
     best_val_acc = 0
 
     for epoch in tqdm.tqdm(range(1, n_epochs+1), desc="Top Accuracy: {0:.2f}%".format(best_val_acc*100), leave=False):
-        tr_accs = [0]
-        tr_losses = [0]
-        val_accs = [0]
-        val_losses = [0]
+        tr_accs = []
+        tr_losses = []
+        val_accs = []
+        val_losses = []
         
         # training an epoch
         t_start = time.time()
         for batch_id in tqdm.trange(len(train_Y),
-                                          desc="acc: {0:.2f} | loss: {1:.2f} | val_acc {2:.2f} | val_loss: {3:.2f}".format(np.mean(tr_accs),
-                                                                                                                              np.mean(tr_losses),
-                                                                                                                              np.mean(val_accs),
-                                                                                                                              np.mean(val_losses))):
+                           desc="acc: {0:.2f} | loss: {1:.2f} | val_acc {2:.2f} | val_loss: {3:.2f}".format(last_tr_acc, last_tr_loss, last_val_acc, last_val_loss)):
             # Each batch consists of a single sample, i.e. one whole trace (1)
             # A trace is represented by a variable number of timesteps (-1)
             # And finally, each timestep contains n_train_cols variables
@@ -166,28 +163,35 @@ if args.mode == 'grouped':
             l,a = model.train_on_batch(batch_x, batch_y)
             tr_losses.append(l)
             tr_accs.append(a)
+
+        last_tr_acc = np.mean(tr_accs)
+        last_tr_loss = np.mean(tr_losses)
         training_time = time.time() - t_start
         
         # validating the epoch result
         t_start = time.time()
-        for batch_id in range(len(test_Y)):
+        for batch_id in tqdm.trange(len(test_Y),
+                        desc="acc: {0:.2f} | loss: {1:.2f} | val_acc {2:.2f} | val_loss: {3:.2f}".format(last_tr_acc, last_tr_loss, last_val_acc, last_val_loss)):
             batch_y = test_Y[batch_id].reshape((1,-1,n_Y_cols))
-            batch_x = { layer_name:test_X[layer_name][batch_id].reshape((1,-1,n_X_cols)) for layer_name in test_X.keys() }
+            batch_x = { layer_name:np.array([test_X[layer_name][batch_id]]) for layer_name in test_X.keys() }
             
-            l,a = model.evaluate(x=batch_x, y=batch_y, batch_size=1, verbose=0)
+            l,a = model.test_on_batch(x=batch_x, y=batch_y)
             val_losses.append(l)
             val_accs.append(a)
+
+        last_val_acc = np.mean(val_accs)
+        last_val_loss = np.mean(val_losses)
         validation_time = time.time() - t_start
         
-        statistics.values[epoch-1] = [np.mean(tr_losses),
-                                      np.mean(tr_accs),
-                                      np.mean(val_losses),
-                                      np.mean(val_accs),
+        statistics.values[epoch-1] = [last_tr_loss,
+                                      last_tr_acc,
+                                      last_val_loss,
+                                      last_val_acc,
                                       training_time,
                                       validation_time]
         
         if best_val_acc < last_val_acc:
-            print("Increased accuracy from {0:.2f}% to {1:.2f}% - saving model!".format(best_val_acc*100, last_val_acc*100))
+            tqdm.tqdm.write("Increased accuracy from {0:.2f}% to {1:.2f}% - saving model!".format(best_val_acc*100, last_val_acc*100))
             best_val_acc = last_val_acc
             model.save("{0}/{1}/{2}/best_val_acc_e{3}.hdf5".format(remote_path, args.model, args.mode, epoch))
     

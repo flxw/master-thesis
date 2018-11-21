@@ -55,7 +55,7 @@ def prepare(path_to_original_data, target_variable):
     unit_count = n_train_cols + output_count
     
     # [samples, time steps, features]
-    il = Input(batch_shape=(batch_size,time_steps,n_train_cols))
+    il = Input(batch_shape=(batch_size,time_steps,n_train_cols), name='seq_input')
 
     main_output = LSTM(unit_count,
                        batch_input_shape=(batch_size,time_steps,n_train_cols),
@@ -74,4 +74,6 @@ def prepare(path_to_original_data, target_variable):
     full_model.compile(loss='categorical_crossentropy', optimizer=optimizerator, metrics=['accuracy'])
     
     # all data arrays have to be lists of numpy arrays!
+    train_traces = { 'seq_input': train_traces }
+    test_traces  = { 'seq_input': test_traces }
     return train_traces, train_traces_targets, test_traces, test_traces_targets, full_model
