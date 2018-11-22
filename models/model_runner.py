@@ -7,6 +7,7 @@ import pandas as pd
 import pickle
 import math
 import random
+import keras.backend as B
 
 # argument setup here
 parser = argparse.ArgumentParser(description='The network training script for Felix Wolff\'s master\'s thesis!')
@@ -72,7 +73,7 @@ last_val_loss = 0
 best_val_loss = math.inf
 current_patience = es_patience
 
-epoch_iterator = tqdm.trange(1, n_epochs+1)
+epoch_iterator = tqdm.trange(1, n_epochs+1, leave=False)
 for epoch in epoch_iterator:
     tr_accs = []
     tr_losses = []
@@ -104,6 +105,7 @@ for epoch in epoch_iterator:
     # validating the epoch result
     t_start = time.time()
     for batch_id in range(len(test_Y)):
+        # every test batch is a single trace, and thus has to be of 3D shape (1,time_steps,n_features)
         batch_y = test_Y[batch_id].reshape((1,-1,n_Y_cols))
         batch_x = { layer_name: np.array([test_X[layer_name][batch_id]]) for layer_name in test_X.keys() }
         
@@ -121,7 +123,7 @@ for epoch in epoch_iterator:
                                   last_val_acc,
                                   training_time,
                                   validation_time]
-    
+    # training administration
     if best_val_loss > last_val_loss:
         tqdm.tqdm.write("Decreased loss from {0:.2f} to {1:.2f} - saving model!".format(best_val_loss, last_val_loss))
         best_val_loss = last_val_loss
@@ -135,5 +137,9 @@ for epoch in epoch_iterator:
         model.save("{0}/{1}/{2}/best_val_loss_e{3}.hdf5".format(remote_path, args.model, args.mode, epoch))
         epoch_iterator.close()
         break
+        
+    # model specific crap i could not encapsulate
+    if epoch == 25: # why? See Implementation in evermann2016
+        B.set_value(model.optimizer.decay, .75)
 
 statistics_df.to_pickle("{0}/{1}/{2}/train_statistics.pickled".format(remote_path, args.model, args.mode))
