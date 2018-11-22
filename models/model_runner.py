@@ -47,7 +47,7 @@ elif args.model == 'pfs':
     
 # load appropriate data formatter
 if args.mode == 'individual':
-    pass
+    import individual_formatter as data_formatter
 elif args.mode == 'grouped':
     pass
 elif args.mode == 'padded':
