@@ -1,40 +1,19 @@
-import keras
-import pickle
-import random
-import numpy as np
+import numpy  as np
 import pandas as pd
-import re
-import os
 
-import tqdm
 from keras.models import Sequential, Model
 from keras.layers import Dense, Embedding, Input, Reshape, concatenate, Flatten, Activation, LSTM
+from keras.utils  import np_utils
+from keras.optimizers import RMSprop
+from utils import load_trace_dataset
 
-import multi_gpu_utils2 as multi_gpu_utils
-
-##############################
-##### CONFIGURATION SETUP ####
-data_path = "../logs/bpic2011.xes"
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
-target_variable = "concept:name"
-### CONFIGURATION SETUP END ###
-###############################
-
-def load_trace_dataset(purpose='categorical', ttype='test'):
-    suffix = "_{0}_{1}.pickled".format(purpose, ttype)
-    p = data_path.replace(".xes", suffix)
-    return pickle.load(open(p, "rb"))
-
-if __name__ == '__main__':    
-    ### BE NICE SAY HELLO
-    print("Welcome to Felix' master thesis: Deep Learning Next-Activity Prediction Using Subsequence-Enriched Input Data")
-    print("Will now train a mimicked implementation of Evermann's network as he has described it in his 2016 paper")
-    print("\n")
+def prepare_datasets(path_to_original_data, target_variable):    
+    train_traces  = load_trace_dataset(path_to_original_data, 'categorical', 'train')
+    train_targets = load_trace_dataset(path_to_original_data, 'target', 'train')
+    test_traces   = load_trace_dataset(path_to_original_data, 'categorical', 'test')
+    test_targets  = load_trace_dataset(path_to_original_data, 'target', 'test')
+    feature_dict  = load_trace_dataset(path_to_original_data, 'mapping', 'dict')
     
-    ### BEGIN DATA LOADING
-    train_traces = load_trace_dataset('categorical', 'train')
-    train_targets = load_trace_dataset('target', 'train')
-    feature_dict = load_trace_dataset('mapping', 'dict')
     
     ### BEGIN MODEL CONSTRUCTION
     batch_size = None # None translates to unknown batch size

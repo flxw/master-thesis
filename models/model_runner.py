@@ -115,7 +115,7 @@ for epoch in epoch_iterator:
     last_val_loss = np.mean(val_losses)
     validation_time = time.time() - t_start
     
-    statistics.values[epoch-1] = [last_tr_loss,
+    statistics_df.values[epoch-1] = [last_tr_loss,
                                   last_tr_acc,
                                   last_val_loss,
                                   last_val_acc,
@@ -136,4 +136,4 @@ for epoch in epoch_iterator:
         epoch_iterator.close()
         break
 
-statistics.to_pickle("{0}/{1}/{2}/train_statistics.pickled".format(remote_path, args.model, args.mode))
+statistics_df.to_pickle("{0}/{1}/{2}/train_statistics.pickled".format(remote_path, args.model, args.mode))
