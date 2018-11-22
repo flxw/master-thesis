@@ -8,7 +8,7 @@ def find_clean_batch_size(setlen, optimum):
         optimum += 1
     return optimum
 
-def format_datasets(model_formatted_data_fn, datapath, target_variable, batch_size):
+def format_datasets(model_formatted_data_fn, datapath, target_variable):
     train_X, train_Y, test_X, test_Y = model_formatted_data_fn(datapath, target_variable)
     
     # loop through every dictionary key and group (since the elements had the same order before, they should have after)
