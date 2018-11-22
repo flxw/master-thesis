@@ -38,7 +38,7 @@ def prepare_datasets(path_to_original_data, target_variable):
     
     # tie everything together since we only have a single input layer
     train_traces = {'seq_input': [ pd.concat([a,b], axis=1).values for a,b in zip(train_traces_ordinal, train_traces_categorical) ]}
-    test_traces  = {'seq_input': [ pd.concat([a,b], axis=1).values for a,b in zip(test_traces_ordinal, test_traces_categorical)   ]}
+    test_traces  = {'seq_input': [ pd.concat([a,b], axis=1).values for a,b in zip(test_traces_ordinal,  test_traces_categorical)  ]}
     
     train_traces_targets = [ t.values for t in train_traces_targets ]
     test_traces_targets  = [ t.values for t in test_traces_targets  ]

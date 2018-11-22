@@ -33,17 +33,17 @@ os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu)
 
 # load appropriate model
 if args.model == 'evermann':
-    import models.evermann as model_builder
+    import builders.evermann as model_builder
     n_epochs = 50
     only_activity = True
 elif args.model == 'schoenig':
-    import moderls.schoenig as model_builder
+    import builders.schoenig as model_builder
     n_epochs = 100
 elif args.model == 'sp2':
-    import models.sp2 as model_builder
+    import builders.sp2 as model_builder
     n_epochs = 150
 elif args.model == 'pfs':
-    import models.pfs as model_builder
+    import builders.pfs as model_builder
     n_epochs = 150
     
 # load appropriate data formatter
@@ -74,23 +74,20 @@ last_val_loss = 0
 best_val_loss = math.inf
 current_patience = es_patience
 
-epoch_iterator = tqdm.trange(1, n_epochs+1, leave=False)
-for epoch in epoch_iterator:
+for epoch in range(1, n_epochs+1):
     tr_accs = []
     tr_losses = []
     val_accs = []
     val_losses = []
     
-    # training an epoch
-    t_start = time.time()
-    
     # shuffle batches for every epoch
     batches = list(range(len(train_Y)))
-    random.shuffle(batches)
-    
+    #random.shuffle(batches)
+    # training an epoch
+    t_start = time.time()
     # train the network on a batch
     for batch_id in tqdm.tqdm(batches,
-                       desc="acc: {0:.2f} | loss: {1:.2f} | val_acc {2:.2f} | val_loss: {3:.2f}".format(last_tr_acc, last_tr_loss, last_val_acc, last_val_loss)):
+                       desc="epoch {0} | acc: {1:.2f}% | loss: {2:.2f} | val_acc {3:.2f}% | val_loss: {4:.2f}".format(epoch, last_tr_acc*100, last_tr_loss, last_val_acc*100, last_val_loss)):
         # Each first-level element is a batch
         batch_x = { layer_name: train_X[layer_name][batch_id] for layer_name in train_X.keys() }
         batch_y = train_Y[batch_id]
@@ -105,14 +102,14 @@ for epoch in epoch_iterator:
     
     # validating the epoch result
     t_start = time.time()
-    for batch_id in range(len(test_Y)):
-        # every test batch is a single trace, and thus has to be of 3D shape (1,time_steps,n_features)
-        batch_y = test_Y[batch_id].reshape((1,-1,n_Y_cols))
-        batch_x = { layer_name: np.array([test_X[layer_name][batch_id]]) for layer_name in test_X.keys() }
+#     for batch_id in range(len(test_Y)):
+#         # every test batch is a single trace, and thus has to be of 3D shape (1,time_steps,n_features)
+#         batch_y = test_Y[batch_id].reshape((1,-1,n_Y_cols))
+#         batch_x = { layer_name: np.array([test_X[layer_name][batch_id]]) for layer_name in test_X.keys() }
         
-        l,a = model.test_on_batch(x=batch_x, y=batch_y)
-        val_losses.append(l)
-        val_accs.append(a)
+#         l,a = model.test_on_batch(x=batch_x, y=batch_y)
+#         val_losses.append(l)
+#         val_accs.append(a)
 
     last_val_acc = np.mean(val_accs)
     last_val_loss = np.mean(val_losses)
@@ -136,11 +133,10 @@ for epoch in epoch_iterator:
     if current_patience == 0:
         tqdm.tqdm.write("Early stopping, since loss has not improved for {0} epochs".format(es_patience))
         model.save("{0}/{1}/{2}/best_val_loss_e{3}.hdf5".format(remote_path, args.model, args.mode, epoch))
-        epoch_iterator.close()
         break
         
     # model specific crap i could not encapsulate
-    if epoch == 25: # why? See Implementation in evermann2016
+    if epoch == 25 and args.model == 'evermann': # why? See Implementation in evermann2016
         B.set_value(model.optimizer.decay, .75)
 
 statistics_df.to_pickle("{0}/{1}/{2}/train_statistics.pickled".format(remote_path, args.model, args.mode))
