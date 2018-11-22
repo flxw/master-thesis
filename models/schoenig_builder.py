@@ -1,13 +1,12 @@
-import keras
-import numpy as np
+import numpy  as np
 import pandas as pd
 
 from keras.models import Sequential, Model
 from keras.layers import Dense, Embedding, Input, Reshape, concatenate, Flatten, Activation, LSTM
-from keras.utils import np_utils
-from utils import *
+from keras.utils  import np_utils
+from utils import load_trace_dataset
 
-def prepare(path_to_original_data, target_variable):
+def prepare_datasets(path_to_original_data, target_variable):
     ### BEGIN DATA LOADING
     train_traces_categorical = load_trace_dataset(path_to_original_data, 'categorical', 'train')
     train_traces_ordinal = load_trace_dataset(path_to_original_data, 'ordinal', 'train')
@@ -39,12 +38,15 @@ def prepare(path_to_original_data, target_variable):
             test_traces_categorical[i] = pd.concat([test_traces_categorical[i], tmp], axis=1)
     
     # tie everything together since we only have a single input layer
-    train_traces = [ pd.concat([a,b], axis=1).values for a,b in zip(train_traces_ordinal, train_traces_categorical) ]
-    test_traces  = [ pd.concat([a,b], axis=1).values for a,b in zip(test_traces_ordinal, test_traces_categorical)   ]
+    train_traces = {'seq_input': [ pd.concat([a,b], axis=1).values for a,b in zip(train_traces_ordinal, train_traces_categorical) ]}
+    test_traces  = {'seq_input': [ pd.concat([a,b], axis=1).values for a,b in zip(test_traces_ordinal, test_traces_categorical)   ]}
     
     train_traces_targets = [ t.values for t in train_traces_targets ]
     test_traces_targets  = [ t.values for t in test_traces_targets  ]
     
+    return train_traces, train_traces_targets, test_traces, test_traces_targets
+
+def construct_model():
     n_train_cols  = train_traces[0][0].shape[0]
     n_target_cols = train_traces_targets[0][0].shape[0]
     
