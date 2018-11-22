@@ -49,7 +49,7 @@ elif args.model == 'pfs':
 if args.mode == 'individual':
     import individual_formatter as data_formatter
 elif args.mode == 'grouped':
-    pass
+    import grouped_formatter as data_formatter
 elif args.mode == 'padded':
     import padded_formatter as data_formatter
 elif args.mode == 'windowed':
