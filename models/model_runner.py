@@ -126,7 +126,7 @@ if args.mode == 'grouped':
                 if (len(layer_train_X) == len(train_Y)):
                     grouped_train_Y[tl] = [train_Y[i]]
 
-        train_X[input_name] = np.array([l for l in grouped_train_X.values()])
+        train_X[input_name] = np.array([np.array(l) for l in grouped_train_X.values()])
 
         if (len(layer_train_X) == len(train_Y)):
             train_Y = np.array([np.array(l) for l in grouped_train_Y.values()])
@@ -134,8 +134,8 @@ if args.mode == 'grouped':
 if args.mode == 'individual' or args.mode == 'grouped':
     ### BEGIN TRAINING
     indi = args.mode == 'individual'
-    n_X_cols = train_X['seq_input'][0].shape[1] if indi else train_X['seq_input'][0][0].shape[1]
-    n_Y_cols = train_Y[0].shape[1]
+    n_X_cols = train_X['seq_input'][0].shape[1] if indi else train_X['seq_input'][0].shape[2]
+    n_Y_cols = train_Y[0].shape[1] if indi else train_Y[0].shape[2]
     last_tr_acc   = 0
     last_tr_loss  = 0
     last_val_acc  = 0
@@ -159,7 +159,6 @@ if args.mode == 'individual' or args.mode == 'grouped':
             # Each batch consists of a single sample, i.e. one whole trace (1)
             # A trace is represented by a variable number of timesteps (-1)
             # And finally, each timestep contains n_train_cols variables
-            batch_x = None
             if indi:
                 batch_x = { layer_name: np.array([train_X[layer_name][batch_id]]) for layer_name in train_X.keys() }
             else:
