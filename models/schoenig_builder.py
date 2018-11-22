@@ -4,6 +4,7 @@ import pandas as pd
 from keras.models import Sequential, Model
 from keras.layers import Dense, Embedding, Input, Reshape, concatenate, Flatten, Activation, LSTM
 from keras.utils  import np_utils
+from keras.optimizers import RMSprop
 from utils import load_trace_dataset
 
 def prepare_datasets(path_to_original_data, target_variable):
@@ -46,21 +47,16 @@ def prepare_datasets(path_to_original_data, target_variable):
     
     return train_traces, train_traces_targets, test_traces, test_traces_targets
 
-def construct_model():
-    n_train_cols  = train_traces[0][0].shape[0]
-    n_target_cols = train_traces_targets[0][0].shape[0]
-    
-    ### BEGIN MODEL CONSTRUCTION
+def construct_model(n_train_cols, n_target_cols):
     batch_size = None # None translates to unknown batch size
     time_steps = None
-    output_count = len(feature_dict[target_variable]["to_int"])
-    unit_count = n_train_cols + output_count
+    unit_count = n_train_cols + n_target_cols
     
     # [samples, time steps, features]
-    il = Input(batch_shape=(batch_size,time_steps,n_train_cols), name='seq_input')
+    il = Input(batch_shape=(batch_size, time_steps, n_train_cols), name='seq_input')
 
     main_output = LSTM(unit_count,
-                       batch_input_shape=(batch_size,time_steps,n_train_cols),
+                       batch_input_shape=(batch_size, time_steps, n_train_cols),
                        stateful=False,
                        return_sequences=True,
                        dropout=0.3)(il)
@@ -69,13 +65,10 @@ def construct_model():
                        return_sequences=True,
                        dropout=0.3)(main_output)
 
-    main_output = Dense(output_count, activation='softmax', name='dense_final')(main_output)
+    main_output = Dense(n_target_cols, activation='softmax', name='dense_final')(main_output)
     full_model = Model(inputs=[il], outputs=[main_output])
-    optimizerator = keras.optimizers.RMSprop()
+    optimizerator = RMSprop()
     
     full_model.compile(loss='categorical_crossentropy', optimizer=optimizerator, metrics=['accuracy'])
     
-    # all data arrays have to be lists of numpy arrays!
-    train_traces = { 'seq_input': train_traces }
-    test_traces  = { 'seq_input': test_traces }
-    return train_traces, train_traces_targets, test_traces, test_traces_targets, full_model
+    return full_model
