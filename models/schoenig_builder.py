@@ -8,7 +8,6 @@ from keras.optimizers import RMSprop
 from utils import load_trace_dataset
 
 def prepare_datasets(path_to_original_data, target_variable):
-    ### BEGIN DATA LOADING
     train_traces_categorical = load_trace_dataset(path_to_original_data, 'categorical', 'train')
     train_traces_ordinal = load_trace_dataset(path_to_original_data, 'ordinal', 'train')
     train_traces_targets = load_trace_dataset(path_to_original_data, 'target', 'train')
@@ -19,7 +18,6 @@ def prepare_datasets(path_to_original_data, target_variable):
     
     feature_dict = load_trace_dataset(path_to_original_data, 'mapping', 'dict')
     
-    ### DO FINAL DATA PREPARATION
     # Use one-hot encoding for categorical values
     for col in train_traces_categorical[0].columns:
         nc = len(feature_dict[col]['to_int'].values())
