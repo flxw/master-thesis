@@ -1,5 +1,6 @@
 import argparse
 import os
+import sys
 import tqdm
 import time
 import numpy as np
@@ -59,7 +60,7 @@ elif args.mode == 'windowed':
 # 3D for every train_X / train_Y element
 # 2D for every test_X / test_Y element
 train_X, train_Y, test_X, test_Y = data_formatter.format_datasets(model_builder.prepare_datasets, args.datapath, target_variable)
-n_X_cols = test_X['seq_input'][0].shape[1]
+n_X_cols = [test_X[name][0].shape[1] for name in test_X.keys()]
 n_Y_cols = test_Y[0].shape[1]
 
 model = model_builder.construct_model(n_X_cols, n_Y_cols)

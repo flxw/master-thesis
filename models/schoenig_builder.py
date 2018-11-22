@@ -48,13 +48,13 @@ def prepare_datasets(path_to_original_data, target_variable):
 def construct_model(n_train_cols, n_target_cols):
     batch_size = None # None translates to unknown batch size
     time_steps = None
-    unit_count = n_train_cols + n_target_cols
+    unit_count = n_train_cols[0] + n_target_cols
     
     # [samples, time steps, features]
-    il = Input(batch_shape=(batch_size, time_steps, n_train_cols), name='seq_input')
+    il = Input(batch_shape=(batch_size, time_steps, n_train_cols[0]), name='seq_input')
 
     main_output = LSTM(unit_count,
-                       batch_input_shape=(batch_size, time_steps, n_train_cols),
+                       batch_input_shape=(batch_size, time_steps, n_train_cols[0]),
                        stateful=False,
                        return_sequences=True,
                        dropout=0.3)(il)
