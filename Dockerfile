@@ -15,7 +15,7 @@ RUN /opt/conda/bin/conda create --name thesis --file thesis-environment.yml
 
 SHELL ["/bin/bash", "-c"]
 RUN source /opt/conda/bin/activate thesis && pip install -r requirements.txt
-ADD *.pickled logs/
+ADD . logs/
 
 ENV NVIDIA_VISIBLE_DEVICES all
 ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
