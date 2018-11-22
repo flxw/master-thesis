@@ -47,11 +47,11 @@ elif args.model == 'pfs':
     
 # load appropriate data formatter
 if args.mode == 'individual':
-    import individual_formatter as data_formatter
+    import formatters.individual as data_formatter
 elif args.mode == 'grouped':
-    import grouped_formatter as data_formatter
+    import formatters.grouped as data_formatter
 elif args.mode == 'padded':
-    import padded_formatter as data_formatter
+    import formatters.padded as data_formatter
 elif args.mode == 'windowed':
     pass
 
