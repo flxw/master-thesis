@@ -33,17 +33,17 @@ os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu)
 
 # load appropriate model
 if args.model == 'evermann':
-    import evermann_builder as model_builder
+    import models.evermann as model_builder
     n_epochs = 50
     only_activity = True
 elif args.model == 'schoenig':
-    import schoenig_builder as model_builder
+    import moderls.schoenig as model_builder
     n_epochs = 100
 elif args.model == 'sp2':
-    import sp2_builder as model_builder
+    import models.sp2 as model_builder
     n_epochs = 150
 elif args.model == 'pfs':
-    import pfs_builder as model_builder
+    import models.pfs as model_builder
     n_epochs = 150
     
 # load appropriate data formatter
