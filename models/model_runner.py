@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import pickle
 import math
+import random
 
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.preprocessing.sequence import pad_sequences
@@ -21,14 +22,9 @@ parser.add_argument('datapath', help='Path of dataset to use for training.')
 args = parser.parse_args()
 args.datapath = os.path.abspath(args.datapath)
 
-# TODO make all model scripts into simple plugin helpers for this master script which commands the training logic
-# TODO load model depending on choice, build inside model script
-# TODO implement data loading function within individual model scripts
-# TODO implement grouping and padding handling here, also for the bipartite models
-#      --> make handling easier: (simply make every output of data function a dictionary)
-# TODO do all of training in a notebook to make result graphing easier (:
-
 ### CONFIGURATION
+es_patience = 20
+es_delta = 0
 n_epochs = None
 remote_path = "/home/felix.wolff2/docker_share"
 target_variable = "concept:name"
@@ -79,8 +75,8 @@ if args.mode == 'padded':
     ### BEGIN MODEL TRAINING
     batch_size = math.ceil(0.01*len(train_Y))
     early_stopper = EarlyStopping(monitor='val_loss',
-                                                  min_delta=0,
-                                                  patience=20,
+                                                  min_delta=es_delta,
+                                                  patience=es_patience,
                                                   verbose=1,
                                                   mode='auto',
                                                   baseline=None,
@@ -103,7 +99,6 @@ if args.mode == 'padded':
                         callbacks=[early_stopper,checkpointer,scb],
                         epochs=n_epochs,
                         verbose=1)
-
 
 if args.mode == 'grouped':
     n_X_cols = train_X['seq_input'][0].shape[1]
@@ -131,19 +126,25 @@ if args.mode == 'grouped':
                 if (len(layer_train_X) == len(train_Y)):
                     grouped_train_Y[tl] = [train_Y[i]]
 
-        train_X[input_name] = np.array([np.array(l) for l in grouped_train_X.values()])
+        train_X[input_name] = np.array([l for l in grouped_train_X.values()])
 
         if (len(layer_train_X) == len(train_Y)):
             train_Y = np.array([np.array(l) for l in grouped_train_Y.values()])
     
+if args.mode == 'individual' or args.mode == 'grouped':
     ### BEGIN TRAINING
-    last_tr_acc = 0
-    last_tr_loss = 0
-    last_val_acc = 0
+    indi = args.mode == 'individual'
+    n_X_cols = train_X['seq_input'][0].shape[1] if indi else train_X['seq_input'][0][0].shape[1]
+    n_Y_cols = train_Y[0].shape[1]
+    last_tr_acc   = 0
+    last_tr_loss  = 0
+    last_val_acc  = 0
     last_val_loss = 0
-    best_val_acc = 0
+    best_val_loss = math.inf
+    current_patience = es_patience
 
-    for epoch in tqdm.tqdm(range(1, n_epochs+1), desc="Top Accuracy: {0:.2f}%".format(best_val_acc*100), leave=False):
+    epoch_iterator = tqdm.trange(1, n_epochs+1)
+    for epoch in epoch_iterator:
         tr_accs = []
         tr_losses = []
         val_accs = []
@@ -151,14 +152,21 @@ if args.mode == 'grouped':
         
         # training an epoch
         t_start = time.time()
-        for batch_id in tqdm.trange(len(train_Y),
+        batches = list(range(len(train_Y)))
+        random.shuffle(batches)
+        for batch_id in tqdm.tqdm(batches,
                            desc="acc: {0:.2f} | loss: {1:.2f} | val_acc {2:.2f} | val_loss: {3:.2f}".format(last_tr_acc, last_tr_loss, last_val_acc, last_val_loss)):
             # Each batch consists of a single sample, i.e. one whole trace (1)
             # A trace is represented by a variable number of timesteps (-1)
             # And finally, each timestep contains n_train_cols variables
-            samples = len(train_X['seq_input'][batch_id])
+            batch_x = None
+            if indi:
+                batch_x = { layer_name: np.array([train_X[layer_name][batch_id]]) for layer_name in train_X.keys() }
+            else:
+                batch_x = { layer_name: train_X[layer_name][batch_id] for layer_name in train_X.keys() }
+                
+            samples = batch_x['seq_input'].shape[0]
             batch_y = train_Y[batch_id].reshape((samples,-1,n_Y_cols))
-            batch_x = { layer_name:train_X[layer_name][batch_id] for layer_name in train_X.keys() }
             
             l,a = model.train_on_batch(batch_x, batch_y)
             tr_losses.append(l)
@@ -170,10 +178,9 @@ if args.mode == 'grouped':
         
         # validating the epoch result
         t_start = time.time()
-        for batch_id in tqdm.trange(len(test_Y),
-                        desc="acc: {0:.2f} | loss: {1:.2f} | val_acc {2:.2f} | val_loss: {3:.2f}".format(last_tr_acc, last_tr_loss, last_val_acc, last_val_loss)):
+        for batch_id in range(10):
             batch_y = test_Y[batch_id].reshape((1,-1,n_Y_cols))
-            batch_x = { layer_name:np.array([test_X[layer_name][batch_id]]) for layer_name in test_X.keys() }
+            batch_x = { layer_name: np.array([test_X[layer_name][batch_id]]) for layer_name in test_X.keys() }
             
             l,a = model.test_on_batch(x=batch_x, y=batch_y)
             val_losses.append(l)
@@ -190,9 +197,18 @@ if args.mode == 'grouped':
                                       training_time,
                                       validation_time]
         
-        if best_val_acc < last_val_acc:
-            tqdm.tqdm.write("Increased accuracy from {0:.2f}% to {1:.2f}% - saving model!".format(best_val_acc*100, last_val_acc*100))
-            best_val_acc = last_val_acc
+        if best_val_loss > last_val_loss:
+            tqdm.tqdm.write("Decreased loss from {0:.2f} to {1:.2f} - saving model!".format(best_val_loss, last_val_loss))
+            best_val_loss = last_val_loss
+            current_patience = es_patience
             model.save("{0}/{1}/{2}/best_val_acc_e{3}.hdf5".format(remote_path, args.model, args.mode, epoch))
+        else:
+            current_patience -= 1
+
+        if current_patience == 0:
+            tqdm.tqdm.write("Early stopping, since accuracy has not improved for {0} epochs".format(es_patience))
+            model.save("{0}/{1}/{2}/best_val_acc_e{3}.hdf5".format(remote_path, args.model, args.mode, epoch))
+            epoch_iterator.close()
+            break
     
 statistics.to_pickle("{0}/{1}/{2}/train_statistics.pickled".format(remote_path, args.model, args.mode))
