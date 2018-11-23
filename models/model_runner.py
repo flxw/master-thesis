@@ -45,7 +45,7 @@ elif args.model == 'sp2':
 elif args.model == 'pfs':
     import builders.pfs as model_builder
     n_epochs = 150
-    
+
 # load appropriate data formatter
 if args.mode == 'individual':
     import formatters.individual as data_formatter
@@ -79,7 +79,7 @@ for epoch in range(1, n_epochs+1):
     tr_losses = []
     val_accs = []
     val_losses = []
-    
+
     # shuffle batches for every epoch
     batches = list(range(len(train_Y)))
     #random.shuffle(batches)
@@ -91,11 +91,11 @@ for epoch in range(1, n_epochs+1):
         # Each first-level element is a batch
         batch_x = { layer_name: train_X[layer_name][batch_id] for layer_name in train_X.keys() }
         batch_y = train_Y[batch_id]
-        
+
         # don't let data bugs ruin days of training again
         assert(np.isnan(batch_x['seq_input']).any() == False)
         assert(np.isnan(batch_y).any() == False)
-        
+
         l,a = model.train_on_batch(batch_x, batch_y)
         tr_losses.append(l)
         tr_accs.append(a)
@@ -103,22 +103,22 @@ for epoch in range(1, n_epochs+1):
     last_tr_acc = np.mean(tr_accs)
     last_tr_loss = np.mean(tr_losses)
     training_time = time.time() - t_start
-    
+
     # validating the epoch result
     t_start = time.time()
-#     for batch_id in range(len(test_Y)):
-#         # every test batch is a single trace, and thus has to be of 3D shape (1,time_steps,n_features)
-#         batch_y = test_Y[batch_id].reshape((1,-1,n_Y_cols))
-#         batch_x = { layer_name: np.array([test_X[layer_name][batch_id]]) for layer_name in test_X.keys() }
-        
-#         l,a = model.test_on_batch(x=batch_x, y=batch_y)
-#         val_losses.append(l)
-#         val_accs.append(a)
+    for batch_id in range(len(test_Y)):
+        # every test batch is a single trace, and thus has to be of 3D shape (1,time_steps,n_features)
+        batch_y = test_Y[batch_id].reshape((1,-1,n_Y_cols))
+        batch_x = { layer_name: np.array([test_X[layer_name][batch_id]]) for layer_name in test_X.keys() }
+
+        l,a = model.test_on_batch(x=batch_x, y=batch_y)
+        val_losses.append(l)
+        val_accs.append(a)
 
     last_val_acc = np.mean(val_accs)
     last_val_loss = np.mean(val_losses)
     validation_time = time.time() - t_start
-    
+
     statistics_df.values[epoch-1] = [last_tr_loss,
                                   last_tr_acc,
                                   last_val_loss,
@@ -138,7 +138,7 @@ for epoch in range(1, n_epochs+1):
         tqdm.tqdm.write("Early stopping, since loss has not improved for {0} epochs".format(es_patience))
         model.save("{0}/{1}/{2}/best_val_loss_e{3}.hdf5".format(remote_path, args.model, args.mode, epoch))
         break
-        
+
     # model specific crap i could not encapsulate
     if epoch == 25 and args.model == 'evermann': # why? See Implementation in evermann2016
         B.set_value(model.optimizer.decay, .75)
