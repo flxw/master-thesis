@@ -17,7 +17,7 @@ def prepare_datasets(path_to_original_data, target_variable):
     test_traces_targets = load_trace_dataset(path_to_original_data, 'target', 'test')
     
     feature_dict = load_trace_dataset(path_to_original_data, 'mapping', 'dict')
-    
+        
     # Use one-hot encoding for categorical values
     for col in train_traces_categorical[0].columns:
         nc = len(feature_dict[col]['to_int'].values())
@@ -35,14 +35,19 @@ def prepare_datasets(path_to_original_data, target_variable):
             tmp = pd.DataFrame(tmp).add_prefix(col)
             test_traces_categorical[i].drop(columns=[col], inplace=True)
             test_traces_categorical[i] = pd.concat([test_traces_categorical[i], tmp], axis=1)
-    
+                            
     # tie everything together since we only have a single input layer
     train_traces = {'seq_input': [ pd.concat([a,b], axis=1).values for a,b in zip(train_traces_ordinal, train_traces_categorical) ]}
     test_traces  = {'seq_input': [ pd.concat([a,b], axis=1).values for a,b in zip(test_traces_ordinal,  test_traces_categorical)  ]}
     
     train_traces_targets = [ t.values for t in train_traces_targets ]
     test_traces_targets  = [ t.values for t in test_traces_targets  ]
-    
+        
+    for i in range(len(train_traces_targets)):
+        assert np.isnan(train_traces['seq_input'][i]).any() == False, train_traces['seq_input'][i]
+    for i in range(len(test_traces_targets)):
+        assert np.isnan(test_traces['seq_input'][i]).any() == False, test_traces['seq_input'][i]
+        
     return train_traces, train_traces_targets, test_traces, test_traces_targets
 
 def construct_model(n_train_cols, n_target_cols):

@@ -92,6 +92,10 @@ for epoch in range(1, n_epochs+1):
         batch_x = { layer_name: train_X[layer_name][batch_id] for layer_name in train_X.keys() }
         batch_y = train_Y[batch_id]
         
+        # don't let data bugs ruin days of training again
+        assert(np.isnan(batch_x['seq_input']).any() == False)
+        assert(np.isnan(batch_y).any() == False)
+        
         l,a = model.train_on_batch(batch_x, batch_y)
         tr_losses.append(l)
         tr_accs.append(a)
