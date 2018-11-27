@@ -14,7 +14,7 @@ import keras.backend as B
 parser = argparse.ArgumentParser(description='The network training script for Felix Wolff\'s master\'s thesis!')
 parser.add_argument('model', choices=('evermann', 'schoenig', 'sp2', 'pfs'),
                     help='Which type of model to train.')
-parser.add_argument('mode', choices=('padded', 'grouped', 'individual'),
+parser.add_argument('mode', choices=('padded', 'grouped', 'individual', 'windowed'),
                     help='Which mode to use for feeding the data into the model.')
 parser.add_argument('datapath', help='Path of dataset to use for training.')
 parser.add_argument('--gpu', default=0, help="CUDA ID of which GPU the model should be placed on to")
@@ -54,7 +54,7 @@ elif args.mode == 'grouped':
 elif args.mode == 'padded':
     import formatters.padded as data_formatter
 elif args.mode == 'windowed':
-    pass
+    import formatters.windowed as data_formatter
 
 # every model preparation training output will be:
 # 3D for every train_X / train_Y element
