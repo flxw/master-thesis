@@ -130,13 +130,12 @@ for epoch in range(1, n_epochs+1):
         tqdm.tqdm.write("Decreased loss from {0:.2f} to {1:.2f} - saving model!".format(best_val_loss, last_val_loss))
         best_val_loss = last_val_loss
         current_patience = es_patience
-        model.save("{0}/{1}/{2}/best_val_loss_e{3}.hdf5".format(remote_path, args.model, args.mode, epoch))
+        model.save("{0}/{1}/{2}/best_val_loss.hdf5".format(remote_path, args.model, args.mode))
     else:
         current_patience -= 1
 
     if current_patience == 0:
         tqdm.tqdm.write("Early stopping, since loss has not improved for {0} epochs".format(es_patience))
-        model.save("{0}/{1}/{2}/best_val_loss_e{3}.hdf5".format(remote_path, args.model, args.mode, epoch))
         break
 
     # model specific crap i could not encapsulate
