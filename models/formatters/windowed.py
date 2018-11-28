@@ -27,7 +27,7 @@ def format_datasets(model_formatted_data_fn, datapath, target_variable):
    
     # reshape into batch format
     windowed_train_X = {}
-    windowed_train_Y = [ t[k:] for t in train_Y ]
+    windowed_train_Y = np.array([ w for t in train_Y for w in get_windows(t) ])
     
     for layer_name in test_X.keys():
         windowed_train_X[layer_name] = np.array([ w for t in train_X[layer_name] for w in get_windows(t) ])
@@ -37,5 +37,8 @@ def format_datasets(model_formatted_data_fn, datapath, target_variable):
     for layer_name in test_X.keys():
         n_x_cols = test_X[layer_name][0].shape[1]
         windowed_train_X[layer_name] = windowed_train_X[layer_name].reshape((-1, bs, k, n_x_cols))
+    
+    n_y_cols = windowed_train_Y.shape[2]
+    windowed_train_Y = windowed_train_Y.reshape((-1, bs, k, n_y_cols))
     
     return windowed_train_X, windowed_train_Y, test_X, test_Y
