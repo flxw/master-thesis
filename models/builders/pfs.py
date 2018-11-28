@@ -7,7 +7,7 @@ import itertools
 from tqdm  import tqdm
 from utils import *
 from keras.models import Sequential, Model
-from keras.layers import Dense, Embedding, Input, Reshape, concatenate, ReLU, Activation, LSTM, Dropout
+from keras.layers import Dense, Embedding, Input, Masking, concatenate, ReLU, Activation, LSTM, Dropout
 from keras.utils import np_utils
 
 def prepare_datasets(path_to_original_data, target_variable):
@@ -62,11 +62,13 @@ def prepare_datasets(path_to_original_data, target_variable):
 def construct_model(n_train_cols, n_target_cols):
     batch_size = None # None translates to unknown batch size
     window_size = None
+    dropout=0.3
     seq_unit_count = n_train_cols[0] + n_target_cols
     pfs_unit_count = n_train_cols[1] + n_target_cols
 
     # array format: [samples, time steps, features]
     il = Input(batch_shape=(batch_size,window_size,n_train_cols[0]), name="seq_input")
+    main_output = Masking(mask_value=-1337)(il)
 
     # sizes should be multiple of 32 since it trains faster due to np.float32
     # main feature input here, basically same as schoenig
@@ -76,7 +78,7 @@ def construct_model(n_train_cols, n_target_cols):
                        return_sequences=True,
                        unroll=False,
                        kernel_initializer=keras.initializers.Zeros(),
-                       dropout=0.3)(il)
+                       dropout=0.3)(main_output)
     main_output = LSTM(seq_unit_count,
                        stateful=False,
                        return_sequences=True,
@@ -86,12 +88,13 @@ def construct_model(n_train_cols, n_target_cols):
 
     # PFS input here
     il2 = Input(batch_shape=(batch_size,window_size,n_train_cols[1]), name="sec_input")
-    pfs = Dense(pfs_unit_count)(il2)
+    pfs = Masking(mask_value=-1337)(il2)
+    pfs = Dense(sp2_unit_count, activation='relu')(sp2)
     
     main_output = concatenate([main_output, pfs], axis=-1)
-#     main_output = Dropout(0.3)(main_output)
+    main_output = Dropout(dropout)(main_output)
     main_output = Dense(n_target_cols, activation='relu')(main_output)
-    main_output = Dropout(0.3)(main_output)
+    main_output = Dropout(dropout)(main_output)
     main_output = Dense(n_target_cols, activation='softmax')(main_output)
 
     full_model = Model(inputs=[il, il2], outputs=[main_output])

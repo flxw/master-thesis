@@ -2,7 +2,7 @@ import numpy  as np
 import pandas as pd
 
 from keras.models import Sequential, Model
-from keras.layers import Dense, Embedding, Input, Reshape, concatenate, Flatten, Activation, LSTM
+from keras.layers import Dense, Embedding, Input, Reshape, concatenate, Masking, Activation, LSTM
 from keras.utils  import np_utils
 from keras.optimizers import SGD
 from keras.initializers import Zeros
@@ -30,7 +30,8 @@ def construct_model(n_train_cols, n_target_cols):
     window_size = None
     
     il = Input(batch_shape=(batch_size,window_size,1), name='seq_input')
-    main_output = Embedding(n_target_cols, 500)(il)
+    main_output = Masking(mask_value=-1337)(il)
+    main_output = Embedding(n_target_cols, 500)(main_output)
     main_output = Reshape(target_shape=(-1,500))(main_output) # reshape layer does not need to know BATCH SIZE!!!
 
     # sizes should be multiple of 32 since it trains faster due to np.float32

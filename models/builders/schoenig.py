@@ -2,7 +2,7 @@ import numpy  as np
 import pandas as pd
 
 from keras.models import Sequential, Model
-from keras.layers import Dense, Embedding, Input, Reshape, concatenate, Flatten, Activation, LSTM
+from keras.layers import Dense, Embedding, Input, Reshape, concatenate, Masking, Activation, LSTM
 from keras.utils  import np_utils
 from keras.optimizers import RMSprop
 from utils import load_trace_dataset
@@ -57,12 +57,13 @@ def construct_model(n_train_cols, n_target_cols):
     
     # [samples, time steps, features]
     il = Input(batch_shape=(batch_size, time_steps, n_train_cols[0]), name='seq_input')
+    main_output = Masking(mask_value=-1337)(il)
 
     main_output = LSTM(unit_count,
                        batch_input_shape=(batch_size, time_steps, n_train_cols[0]),
                        stateful=False,
                        return_sequences=True,
-                       dropout=0.3)(il)
+                       dropout=0.3)(main_output)
     main_output = LSTM(unit_count,
                        stateful=False,
                        return_sequences=True,
