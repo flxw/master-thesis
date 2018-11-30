@@ -101,5 +101,6 @@ model.fit_generator(generate_shuffled_bitches(train_X, train_Y),
                     validation_steps=test_batchcount,
                     shuffle=False)
 
+print("Overall validation accuracy: ", statistics_df['val_acc'].mean(axis=0))
 statistics_df.dropna(axis=0, how='all', inplace=True)
 statistics_df.to_pickle("{0}/{1}_{2}_stats.pickled".format(args.output, args.model, args.mode))

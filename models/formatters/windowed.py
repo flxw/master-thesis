@@ -3,7 +3,7 @@ from keras.preprocessing.sequence import pad_sequences
 from math import ceil
 
 k = 2
-batch_size = 64
+batch_size = 32
 
 def find_clean_batch_size(setlen, optimum):
     while setlen % optimum != 0:
@@ -49,6 +49,6 @@ def format_datasets(model_formatted_data_fn, datapath, target_variable):
     # find find better batch size here for 
     windowed_train_Y = windowed_train_Y.reshape((-1, train_bs, n_y_cols))
     windowed_test_Y  =  windowed_test_Y.reshape((-1, test_bs, n_y_cols))
-    print(windowed_train_Y.shape, windowed_test_Y.shape)
+    print("Using batch size", train_bs)
     
     return windowed_train_X, windowed_train_Y, windowed_test_X, windowed_test_Y

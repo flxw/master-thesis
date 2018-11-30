@@ -27,25 +27,26 @@ def prepare_datasets(path_to_original_data, target_variable):
     
 def construct_model(n_train_cols, n_target_cols, learn_windows=False):
     batch_size  = None # None translates to unknown size
-    window_size = None
+    window_size = 2 if learn_windows else None
+    reshape_size=(window_size,500) if learn_windows else (-1, 500)
     
     il = Input(batch_shape=(batch_size,window_size,1), name='seq_input')
     main_output = Masking(mask_value=-1337)(il)
     main_output = Embedding(n_target_cols, 500)(main_output)
-    main_output = Reshape(target_shape=(-1,500))(main_output)
+    main_output = Reshape(target_shape=reshape_size)(main_output)
 
     # sizes should be multiple of 32 since it trains faster due to np.float32
     main_output = LSTM(500,
                        batch_input_shape=(batch_size,window_size,1),
                        stateful=False,
                        return_sequences=True,
-                       unroll=True,
+                       unroll=learn_windows,
                        dropout=0.2,
                        kernel_initializer=Zeros())(main_output)
     main_output = LSTM(500,
                        stateful=False,
-                       return_sequences=not learn_windows,,
-                       unroll=True,
+                       return_sequences=not learn_windows,
+                       unroll=learn_windows,
                        dropout=0.2,
                        kernel_initializer=Zeros())(main_output)
 
