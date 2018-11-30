@@ -87,7 +87,8 @@ def construct_model(n_train_cols, n_target_cols, learn_windows=False):
                        dropout=0.3)(main_output)
 
     # PFS input here
-    il2 = Input(batch_shape=(batch_size,window_size,n_train_cols[1]), name="sec_input")
+    pfs_batch_shape = (batch_size,window_size, n_train_cols[1]) if not learn_windows else (batch_size, n_train_cols[1])
+    il2 = Input(batch_shape=pfs_batch_shape, name="sec_input")
     pfs = Masking(mask_value=-1337)(il2)
     pfs = Dense(pfs_unit_count, activation='relu')(pfs)
     

@@ -87,7 +87,8 @@ def construct_model(n_train_cols, n_target_cols, learn_windows=False):
                        dropout=0.3)(main_output)
 
     # SP2 input here
-    il2 = Input(batch_shape=(batch_size,None, n_train_cols[1]), name="sec_input")
+    sp2_batch_shape = (batch_size,window_size, n_train_cols[1]) if not learn_windows else (batch_size, n_train_cols[1])
+    il2 = Input(batch_shape=sp2_batch_shape, name="sec_input")
     sp2 = Masking(mask_value=-1337)(il2)
     sp2 = Dense(sp2_unit_count, activation='relu')(sp2)
 

@@ -62,7 +62,7 @@ elif args.mode == 'windowed':
 # 2D for every test_X / test_Y element
 train_X, train_Y, test_X, test_Y = data_formatter.format_datasets(model_builder.prepare_datasets,
                                                                   args.datapath, config.target_variable)
-n_X_cols = [test_X[name][0].shape[2] for name in test_X.keys()]
+n_X_cols = [test_X[name][0].shape[-1] for name in test_X.keys()]
 n_Y_cols = test_Y[0].shape[-1]
 train_batchcount = len(train_Y)
 test_batchcount = len(test_Y)
