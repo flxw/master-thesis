@@ -27,18 +27,28 @@ def format_datasets(model_formatted_data_fn, datapath, target_variable):
    
     # reshape into batch format
     windowed_train_X = {}
-    windowed_train_Y = np.array([ w for t in train_Y for w in get_windows(t) ])
+    windowed_test_X = {}
+    
+    # at this point, train_Y is an array of 2D numpy arrays
+    n_y_cols = train_Y[0].shape[1]
+    windowed_train_Y = np.concatenate([ t[k:,:] for t in train_Y ])
+    windowed_test_Y  = np.concatenate([ t[k:,:] for t in test_Y  ])
     
     for layer_name in test_X.keys():
         windowed_train_X[layer_name] = np.array([ w for t in train_X[layer_name] for w in get_windows(t) ])
+        windowed_test_X[layer_name]  = np.array([ w for t in test_X[layer_name]  for w in get_windows(t) ])
         
-    bs = find_clean_batch_size(windowed_train_X['seq_input'].shape[0], batch_size)
+    train_bs = find_clean_batch_size(windowed_train_X['seq_input'].shape[0], batch_size)
+    test_bs  = find_clean_batch_size(windowed_test_X['seq_input'].shape[0], batch_size)
 
     for layer_name in test_X.keys():
         n_x_cols = test_X[layer_name][0].shape[1]
-        windowed_train_X[layer_name] = windowed_train_X[layer_name].reshape((-1, bs, k, n_x_cols))
+        windowed_train_X[layer_name] = windowed_train_X[layer_name].reshape((-1, train_bs, k, n_x_cols))
+        windowed_test_X[layer_name]  = windowed_test_X[layer_name].reshape((-1, test_bs, k, n_x_cols))
+        
+    # find find better batch size here for 
+    windowed_train_Y = windowed_train_Y.reshape((-1, train_bs, n_y_cols))
+    windowed_test_Y  =  windowed_test_Y.reshape((-1, test_bs, n_y_cols))
+    print(windowed_train_Y.shape, windowed_test_Y.shape)
     
-    n_y_cols = windowed_train_Y.shape[2]
-    windowed_train_Y = windowed_train_Y.reshape((-1, bs, k, n_y_cols))
-    
-    return windowed_train_X, windowed_train_Y, test_X, test_Y
+    return windowed_train_X, windowed_train_Y, windowed_test_X, windowed_test_Y

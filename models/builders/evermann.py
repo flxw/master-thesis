@@ -25,7 +25,7 @@ def prepare_datasets(path_to_original_data, target_variable):
     
     return train_input, train_targets, test_input, test_targets
     
-def construct_model(n_train_cols, n_target_cols):
+def construct_model(n_train_cols, n_target_cols, learn_windows=False):
     batch_size  = None # None translates to unknown size
     window_size = None
     
@@ -39,13 +39,13 @@ def construct_model(n_train_cols, n_target_cols):
                        batch_input_shape=(batch_size,window_size,1),
                        stateful=False,
                        return_sequences=True,
-                       unroll=False,
+                       unroll=True,
                        dropout=0.2,
                        kernel_initializer=Zeros())(main_output)
     main_output = LSTM(500,
                        stateful=False,
-                       return_sequences=True,
-                       unroll=False,
+                       return_sequences=not learn_windows,,
+                       unroll=True,
                        dropout=0.2,
                        kernel_initializer=Zeros())(main_output)
 

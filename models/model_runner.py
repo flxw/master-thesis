@@ -63,17 +63,17 @@ elif args.mode == 'windowed':
 train_X, train_Y, test_X, test_Y = data_formatter.format_datasets(model_builder.prepare_datasets,
                                                                   args.datapath, config.target_variable)
 n_X_cols = [test_X[name][0].shape[2] for name in test_X.keys()]
-n_Y_cols = test_Y[0].shape[2]
+n_Y_cols = test_Y[0].shape[-1]
 train_batchcount = len(train_Y)
 test_batchcount = len(test_Y)
 
-model = model_builder.construct_model(n_X_cols, n_Y_cols)
+model = model_builder.construct_model(n_X_cols, n_Y_cols, args.mode == 'windowed')
 statistics_df = pd.DataFrame(columns=['loss', 'acc', 'val_loss', 'val_acc', 'training_time', 'validation_time'], index=range(0,n_epochs), dtype=np.float32)
 
 cb_earlystopper = EarlyStopping(monitor='val_loss',
                       min_delta=config.es_delta,
                       patience=config.es_patience,
-                      verbose=2,
+                      verbose=1,
                       mode='auto',
                       restore_best_weights=False)
 
@@ -98,7 +98,8 @@ model.fit_generator(generate_shuffled_bitches(train_X, train_Y),
                     callbacks=cbs,
                     use_multiprocessing=False,
                     validation_data=generate_shuffled_bitches(test_X, test_Y),
-                    validation_steps=test_batchcount)
+                    validation_steps=test_batchcount,
+                    shuffle=False)
 
 statistics_df.dropna(axis=0, how='all', inplace=True)
 statistics_df.to_pickle("{0}/{1}_{2}_stats.pickled".format(args.output, args.model, args.mode))

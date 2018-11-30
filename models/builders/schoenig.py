@@ -50,7 +50,7 @@ def prepare_datasets(path_to_original_data, target_variable):
         
     return train_traces, train_traces_targets, test_traces, test_traces_targets
 
-def construct_model(n_train_cols, n_target_cols):
+def construct_model(n_train_cols, n_target_cols, learn_windows=False):
     batch_size = None # None translates to unknown batch size
     time_steps = None
     unit_count = n_train_cols[0] + n_target_cols
@@ -66,7 +66,7 @@ def construct_model(n_train_cols, n_target_cols):
                        dropout=0.3)(main_output)
     main_output = LSTM(unit_count,
                        stateful=False,
-                       return_sequences=True,
+                       return_sequences=not learn_windows,
                        dropout=0.3)(main_output)
 
     main_output = Dense(n_target_cols, activation='softmax', name='dense_final')(main_output)
