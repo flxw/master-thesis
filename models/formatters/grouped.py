@@ -41,7 +41,7 @@ def format_datasets(model_formatted_data_fn, datapath, target_variable):
             
     train_Y = np.array([np.array(l) for l in grouped_train_Y.values()])
     
-    # to be removed after refactoring
+    # finish the testing set
     n_y_cols = test_Y[0].shape[1]
     test_targets  = [ t.reshape((1, -1, n_y_cols)) for t in test_Y ]
     
