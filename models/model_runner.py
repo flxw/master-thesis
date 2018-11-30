@@ -11,7 +11,7 @@ import keras.backend as B
 import config
 
 from utils import generate_shuffled_bitches, StatisticsCallback
-from keras.callbacks import EarlyStopping, ModelCheckpoint
+from keras.callbacks import EarlyStopping, ModelCheckpoint, LambdaCallback
 
 # argument setup here
 parser = argparse.ArgumentParser(description='The network training script for Felix Wolff\'s master\'s thesis!')
@@ -75,23 +75,30 @@ cb_earlystopper = EarlyStopping(monitor='val_loss',
                       patience=config.es_patience,
                       verbose=2,
                       mode='auto',
-                      restore_best_weights=True)
+                      restore_best_weights=False)
 
 cb_checkpointer = ModelCheckpoint(monitor='val_loss',
                                   filepath="{0}/{1}_{2}.hdf5".format(args.output, args.model, args.mode),
-                                  verbose=0,
+                                  verbose=1,
                                   save_best_only=True)
 
 cb_statistics = StatisticsCallback(statistics_df=statistics_df,
                                    training_batchcount = train_batchcount,
                                    accuracy_metric=model.metrics[0])
 
+cbs = [cb_earlystopper, cb_checkpointer, cb_statistics]
+
+if args.model == 'evermann': # why? See Implementation in evermann2016
+    cb = LambdaCallback(on_epoch_begin=lambda epoch, logs: B.set_value(model.optimizer.decay, .75) if epoch==24 else False)
+    cbs.append(cb)
+
 model.fit_generator(generate_shuffled_bitches(train_X, train_Y),
                     steps_per_epoch=train_batchcount,
                     epochs=n_epochs,
-                    callbacks=[cb_earlystopper, cb_checkpointer, cb_statistics],
+                    callbacks=cbs,
                     use_multiprocessing=False,
                     validation_data=generate_shuffled_bitches(test_X, test_Y),
                     validation_steps=test_batchcount)
 
+statistics_df.dropna(axis=0, how='all', inplace=True)
 statistics_df.to_pickle("{0}/{1}_{2}_stats.pickled".format(args.output, args.model, args.mode))

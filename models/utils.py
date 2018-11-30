@@ -26,20 +26,23 @@ class StatisticsCallback(Callback):
         self.statistics_df = statistics_df
         self.validation_threshold = training_batchcount - 1
         self.accm = accuracy_metric if accuracy_metric != 'accuracy' else 'acc'	
+        self.current_epoch = 0 # early stopping seems to play around with the current epoch
         
     def on_epoch_begin(self,epoch, logs={}):	
         self.training_start = time.time()	
     
-    def on_epoch_end(self,epoch, logs={}):	
+    def on_epoch_end(self,epoch, logs={}):
+        epoch = self.current_epoch
         validation_end = time.time()	
         training_time = self.training_end - self.training_start	
-        validation_time = validation_end - self.training_end	
+        validation_time = validation_end - self.training_end
         self.statistics_df.values[epoch-1] = [logs['loss'],
                                               logs[self.accm],
-                                              0,#logs['val_loss'],
-                                              0,#logs['val_' + self.accm],
+                                              logs['val_loss'],
+                                              logs['val_' + self.accm],
                                               training_time,
-                                              0]#validation_time]	
+                                              validation_time]
+        self.current_epoch += 1
     def on_batch_end(self, batch, logs={}):	
         if batch == self.validation_threshold:	
             self.training_end = time.time() 
