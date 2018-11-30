@@ -32,7 +32,7 @@ def construct_model(n_train_cols, n_target_cols):
     il = Input(batch_shape=(batch_size,window_size,1), name='seq_input')
     main_output = Masking(mask_value=-1337)(il)
     main_output = Embedding(n_target_cols, 500)(main_output)
-    main_output = Reshape(target_shape=(-1,500))(main_output) # reshape layer does not need to know BATCH SIZE!!!
+    main_output = Reshape(target_shape=(-1,500))(main_output)
 
     # sizes should be multiple of 32 since it trains faster due to np.float32
     main_output = LSTM(500,

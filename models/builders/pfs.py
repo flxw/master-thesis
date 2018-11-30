@@ -89,7 +89,7 @@ def construct_model(n_train_cols, n_target_cols):
     # PFS input here
     il2 = Input(batch_shape=(batch_size,window_size,n_train_cols[1]), name="sec_input")
     pfs = Masking(mask_value=-1337)(il2)
-    pfs = Dense(pfs_unit_count, activation='relu')(sp2)
+    pfs = Dense(pfs_unit_count, activation='relu')(pfs)
     
     main_output = concatenate([main_output, pfs], axis=-1)
     main_output = Dropout(dropout)(main_output)
