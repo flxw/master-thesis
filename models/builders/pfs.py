@@ -59,7 +59,7 @@ def prepare_datasets(path_to_original_data, target_variable):
     
     return train_input, train_target_batches, test_input, test_target_batches
     
-def construct_model(n_train_cols, n_target_cols):
+def construct_model(n_train_cols, n_target_cols, learn_windows=False):
     batch_size = None # None translates to unknown batch size
     window_size = None
     dropout=0.3
@@ -81,7 +81,7 @@ def construct_model(n_train_cols, n_target_cols):
                        dropout=0.3)(main_output)
     main_output = LSTM(seq_unit_count,
                        stateful=False,
-                       return_sequences=True,
+                       return_sequences=not learn_windows,
                        unroll=False,
                        kernel_initializer=keras.initializers.Zeros(),
                        dropout=0.3)(main_output)
