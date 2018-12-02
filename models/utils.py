@@ -32,6 +32,9 @@ class StatisticsCallback(Callback):
         self.training_start = time.time()	
     
     def on_epoch_end(self,epoch, logs={}):
+        if epoch != self.current_epoch:
+            return
+        
         epoch = self.current_epoch
         validation_end = time.time()	
         training_time = self.training_end - self.training_start	
