@@ -2,7 +2,7 @@ import numpy as np
 from keras.preprocessing.sequence import pad_sequences
 from math import ceil
 
-k = 2
+k = 5
 
 def get_windows(trace):
     return [ w for w in window_generator(trace, k)]

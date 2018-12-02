@@ -5,7 +5,7 @@ from keras.models import Sequential, Model
 from keras.layers import Dense, Embedding, Input, Reshape, concatenate, Masking, Activation, LSTM
 from keras.utils  import np_utils
 from keras.optimizers import SGD
-from keras.initializers import Zeros
+from keras.initializers import Zeros, RandomUniform
 from utils import load_trace_dataset
 
 def prepare_datasets(path_to_original_data, target_variable):    
@@ -32,7 +32,9 @@ def construct_model(n_train_cols, n_target_cols, learn_windows=False):
     
     il = Input(batch_shape=(batch_size,window_size,1), name='seq_input')
     main_output = Masking(mask_value=-1337)(il)
-    main_output = Embedding(n_target_cols, 500)(main_output)
+    main_output = Embedding(input_dim=n_target_cols+1,
+                            output_dim=500,
+                            embeddings_initializer=RandomUniform(minval=-0.1, maxval=0.1, seed=None))(main_output)
     main_output = Reshape(target_shape=reshape_size)(main_output)
 
     # sizes should be multiple of 32 since it trains faster due to np.float32
