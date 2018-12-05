@@ -39,5 +39,6 @@ def format_datasets(model_formatted_data_fn, datapath, target_variable):
     for layer_name in test_X.keys():
         n_x_cols = test_X[layer_name][0].shape[1]
         test_inputs[layer_name]  = [ t.reshape((1, -1, n_x_cols)) for t in test_X[layer_name] ]
-            
+        
+    print("Padded batch size for 80% of all shorter traces:", batch_size)        
     return train_inputs, train_targets, test_inputs, test_targets

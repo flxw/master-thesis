@@ -78,13 +78,13 @@ def construct_model(n_train_cols, n_target_cols, learn_windows=False):
                        return_sequences=True,
                        unroll=False,
                        kernel_initializer=keras.initializers.glorot_normal(),
-                       dropout=0.3)(main_output)
+                       dropout=dropout)(main_output)
     main_output = LSTM(seq_unit_count,
                        stateful=False,
                        return_sequences=not learn_windows,
                        unroll=False,
                        kernel_initializer=keras.initializers.glorot_normal(),
-                       dropout=0.3)(main_output)
+                       dropout=dropout)(main_output)
 
     # SP2 input here
     sp2_batch_shape = (batch_size,window_size, n_train_cols[1]) if not learn_windows else (batch_size, n_train_cols[1])

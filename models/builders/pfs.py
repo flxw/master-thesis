@@ -77,13 +77,13 @@ def construct_model(n_train_cols, n_target_cols, learn_windows=False):
                        stateful=False,
                        return_sequences=True,
                        unroll=False,
-                       kernel_initializer=keras.initializers.Zeros(),
+                       kernel_initializer=keras.initializers.glorot_normal(),
                        dropout=0.3)(main_output)
     main_output = LSTM(seq_unit_count,
                        stateful=False,
                        return_sequences=not learn_windows,
                        unroll=False,
-                       kernel_initializer=keras.initializers.Zeros(),
+                       kernel_initializer=keras.initializers.glorot_normal(),
                        dropout=0.3)(main_output)
 
     # PFS input here

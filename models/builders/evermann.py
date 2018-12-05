@@ -27,7 +27,7 @@ def prepare_datasets(path_to_original_data, target_variable):
     
 def construct_model(n_train_cols, n_target_cols, learn_windows=False):
     batch_size  = None # None translates to unknown size
-    window_size = 2 if learn_windows else None
+    window_size = 5 if learn_windows else None
     reshape_size=(window_size,500) if learn_windows else (-1, 500)
     
     il = Input(batch_shape=(batch_size,window_size,1), name='seq_input')
