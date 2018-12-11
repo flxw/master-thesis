@@ -27,12 +27,12 @@ def prepare_datasets(path_to_original_data, target_variable):
     
 def construct_model(n_train_cols, n_target_cols, learn_windows=False):
     batch_size  = None # None translates to unknown size
-    window_size = 5 if learn_windows else None
-    reshape_size=(window_size,500) if learn_windows else (-1, 500)
+    window_size = None
+    reshape_size=(-1, 500)
     
     il = Input(batch_shape=(batch_size,window_size,1), name='seq_input')
     main_output = Masking(mask_value=-1337)(il)
-    main_output = Embedding(input_dim=n_target_cols+1,
+    main_output = Embedding(input_dim=n_target_cols,
                             output_dim=500,
                             embeddings_initializer=RandomUniform(minval=-0.1, maxval=0.1, seed=None))(main_output)
     main_output = Reshape(target_shape=reshape_size)(main_output)
@@ -42,13 +42,13 @@ def construct_model(n_train_cols, n_target_cols, learn_windows=False):
                        batch_input_shape=(batch_size,window_size,1),
                        stateful=False,
                        return_sequences=True,
-                       unroll=learn_windows,
+                       unroll=False,
                        dropout=0.2,
                        kernel_initializer=Zeros())(main_output)
     main_output = LSTM(500,
                        stateful=False,
                        return_sequences=not learn_windows,
-                       unroll=learn_windows,
+                       unroll=False,
                        dropout=0.2,
                        kernel_initializer=Zeros())(main_output)
 
