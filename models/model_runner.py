@@ -36,7 +36,6 @@ os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu)
 if args.model == 'evermann':
     import builders.evermann as model_builder
     n_epochs = 50
-    only_activity = True
 elif args.model == 'schoenig':
     import builders.schoenig as model_builder
     n_epochs = 100
@@ -101,7 +100,7 @@ model.fit_generator(generate_shuffled_bitches(train_X, train_Y),
                     validation_steps=test_batchcount,
                     shuffle=False)
 
-print("Overall validation accuracy: ", statistics_df['val_acc'].mean(axis=0))
+print("Overall validation accuracy: ", statistics_df['val_acc'].max(axis=0))
 statistics_df.dropna(axis=0, how='all', inplace=True)
 statistics_df = statistics_df[:-1]
 statistics_df.to_pickle("{0}/{1}_{2}_stats.pickled".format(args.output, args.model, args.mode))

@@ -2,7 +2,7 @@ import numpy as np
 from keras.preprocessing.sequence import pad_sequences
 from math import ceil
 
-k = 5
+k = 3
 
 def get_windows(trace):
     return [ w for w in window_generator(trace, k)]
@@ -18,7 +18,7 @@ def format_datasets(model_formatted_data_fn, datapath, target_variable):
     assert(len(train_Y[0].shape) == 2)
     assert(len(test_X['seq_input'][0].shape) == 2)
     assert(len(test_Y[0].shape) == 2)
-   
+       
     # reshape into batch format
     windowed_train_X = {}
     windowed_test_X = {}
@@ -37,7 +37,7 @@ def format_datasets(model_formatted_data_fn, datapath, target_variable):
         windowed_train_X[layer_name] = np.concatenate([ t[k:,:] for t in train_X[layer_name] ])
         windowed_test_X[layer_name]  = np.array([ t[k:,:] for t in test_X[layer_name] ])
 
-    batch_size = int(0.01 * len(windowed_train_Y))
+    batch_size = ceil(0.01 * len(windowed_train_Y))
     n_train_batches = int(len(windowed_train_Y) / batch_size)
 
     for layer_name in test_X.keys():
@@ -45,5 +45,11 @@ def format_datasets(model_formatted_data_fn, datapath, target_variable):
         windowed_train_X[layer_name] = np.array_split(windowed_train_X[layer_name], n_train_batches)
 
     windowed_train_Y = np.array_split(windowed_train_Y, n_train_batches)
+
+    # eliminate empty samples caused by window size
+    windowed_test_X = { layer_name: [ t for t in windowed_test_X[layer_name] if t.shape[0] != 0 ] for layer_name in test_X.keys() }
+    windowed_test_Y = [ t for t in windowed_test_Y if t.shape[0] != 0]
+    
+    print("Windowed batch size:", batch_size)
     
     return windowed_train_X, windowed_train_Y, windowed_test_X, windowed_test_Y
