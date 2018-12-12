@@ -1,14 +1,16 @@
 import numpy  as np
 import pandas as pd
 
-from utils import *
 from keras.models import Model
 from keras.layers import Dense, Embedding, Input, Masking, concatenate, ReLU, Activation, LSTM, Dropout
 from keras.utils  import np_utils
-from AbstractBuilder import AbstractBuilder
+from keras.initializers import glorot_normal
+
+from utils import *
+from .AbstractBuilder import AbstractBuilder
 
 class SP2Builder(AbstractBuilder):
-  def prepare_datasets(self, path_to_original_data, target_variable):
+  def prepare_datasets(path_to_original_data, target_variable):
     train_traces_categorical = load_trace_dataset(path_to_original_data, 'categorical', 'train')
     train_traces_ordinal = load_trace_dataset(path_to_original_data, 'ordinal', 'train')
     train_targets = load_trace_dataset(path_to_original_data, 'target', 'train')
@@ -32,13 +34,13 @@ class SP2Builder(AbstractBuilder):
         train_traces_categorical[i].drop(columns=[col], inplace=True)
         train_traces_categorical[i] = pd.concat([train_traces_categorical[i], tmp], axis=1)
 
-        for i in range(0, len(test_traces_categorical)):
-          tmp = test_traces_categorical[i][col].map(feature_dict[col]['to_int'])
-          tmp = np_utils.to_categorical(tmp, num_classes=nc)
-          tmp = pd.DataFrame(tmp).add_prefix(col)
+      for i in range(0, len(test_traces_categorical)):
+        tmp = test_traces_categorical[i][col].map(feature_dict[col]['to_int'])
+        tmp = np_utils.to_categorical(tmp, num_classes=nc)
+        tmp = pd.DataFrame(tmp).add_prefix(col)
 
-          test_traces_categorical[i].drop(columns=[col], inplace=True)
-          test_traces_categorical[i] = pd.concat([test_traces_categorical[i], tmp], axis=1)
+        test_traces_categorical[i].drop(columns=[col], inplace=True)
+        test_traces_categorical[i] = pd.concat([test_traces_categorical[i], tmp], axis=1)
 
     # categorical and ordinal inputs are fed in on one single layer
     train_traces_seq = [ pd.concat([a,b], axis=1) for a,b in zip(train_traces_ordinal, train_traces_categorical) ]
@@ -58,7 +60,7 @@ class SP2Builder(AbstractBuilder):
     return train_input, train_target_batches, test_input, test_target_batches
 
 
-  def construct_model(self, n_train_cols, n_target_cols, learn_windows=False):
+  def construct_model(n_train_cols, n_target_cols, learn_windows=False):
     """
     :param n_train_cols: A dictionary of the number of input columns, keyed with the respective layer name
     :type n_train_cols: Tuple
@@ -83,13 +85,13 @@ class SP2Builder(AbstractBuilder):
                        stateful=False,
                        return_sequences=True,
                        unroll=False,
-                       kernel_initializer=keras.initializers.glorot_normal(),
+                       kernel_initializer=glorot_normal(),
                        dropout=dropout)(main_output)
     main_output = LSTM(seq_unit_count,
                        stateful=False,
                        return_sequences=not learn_windows,
                        unroll=False,
-                       kernel_initializer=keras.initializers.glorot_normal(),
+                       kernel_initializer=glorot_normal(),
                        dropout=dropout)(main_output)
 
     # SP2 input here

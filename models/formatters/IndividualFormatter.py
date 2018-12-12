@@ -1,7 +1,7 @@
 from numpy import percentile
 from keras.preprocessing.sequence import pad_sequences
 from math import ceil
-from AbstractFormatter import AbstractFormatter
+from .AbstractFormatter import AbstractFormatter
 
 class IndividualFormatter(AbstractFormatter):
   def format_datasets(model_formatted_data_fn, datapath, target_variable):

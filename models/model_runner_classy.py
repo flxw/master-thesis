@@ -1,4 +1,17 @@
+#!/usr/bin/env python3
 import argparse
+parser = argparse.ArgumentParser(description='The network training script for Felix Wolff\'s master\'s thesis!')
+parser.add_argument('model', choices=('evermann', 'schoenig', 'sp2', 'pfs'),
+                    help='Which type of model to train.')
+parser.add_argument('mode', choices=('padded', 'grouped', 'individual', 'windowed'),
+                    help='Which mode to use for feeding the data into the model.')
+parser.add_argument('datapath', help='Path of dataset to use for training.')
+parser.add_argument('--gpu', default=0, help="CUDA ID of which GPU the model should be placed on to")
+parser.add_argument('--output', default='/tmp', help='Target directory to put model and training statistics')
+
+args = parser.parse_args()
+
+### simple stuff first ###
 import os
 import sys
 import time
@@ -13,17 +26,6 @@ import config
 from utils import generate_shuffled_bitches, StatisticsCallback
 from keras.callbacks import EarlyStopping, ModelCheckpoint, LambdaCallback
 
-# argument setup here
-parser = argparse.ArgumentParser(description='The network training script for Felix Wolff\'s master\'s thesis!')
-parser.add_argument('model', choices=('evermann', 'schoenig', 'sp2', 'pfs'),
-                    help='Which type of model to train.')
-parser.add_argument('mode', choices=('padded', 'grouped', 'individual', 'windowed'),
-                    help='Which mode to use for feeding the data into the model.')
-parser.add_argument('datapath', help='Path of dataset to use for training.')
-parser.add_argument('--gpu', default=0, help="CUDA ID of which GPU the model should be placed on to")
-parser.add_argument('--output', default='/tmp', help='Target directory to put model and training statistics')
-
-args = parser.parse_args()
 args.datapath = os.path.abspath(args.datapath)
 args.output = os.path.abspath(args.output)
 
@@ -34,14 +36,14 @@ os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu)
 
 # load appropriate model
 if args.model == 'evermann':
-    from builders.evermann import as model_builder
+    from builders.evermann import EvermannBuilder as model_builder
     n_epochs = 50
 elif args.model == 'schoenig':
     from builders.Schoenig import SchoenigBuilder as model_builder
     import builders.schoenig as Builder
     n_epochs = 100
 elif args.model == 'sp2':
-    from builders.SP2 import SP2Builder as Builder
+    from builders.SP2Builder import SP2Builder as model_builder
     n_epochs = 150
 elif args.model == 'pfs':
     from builders.PFS import PFS as model_builder
@@ -49,7 +51,7 @@ elif args.model == 'pfs':
 
 # load appropriate data formatter
 if args.mode == 'individual':
-    from formatters.IndividualFormatter import IndividualFormatter as Formatter
+    from formatters.IndividualFormatter import IndividualFormatter as data_formatter
 elif args.mode == 'grouped':
     import formatters.grouped as data_formatter
 elif args.mode == 'padded':

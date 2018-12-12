@@ -1,7 +1,8 @@
-from abc import abc, abstractmethod
+from abc import ABC, abstractmethod
 
-class AbstractFormatter(object):
-  @abstractmethod @staticmethod
+class AbstractFormatter(ABC):
+  @staticmethod
+  @abstractmethod
   def format_datasets(model_formatted_data_fn, datapath, target_variable):
     """
     :param model_formatted_data_fn: A callback to the format data function of the current model.

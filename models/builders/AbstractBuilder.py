@@ -1,7 +1,10 @@
 from abc import ABC, abstractmethod
+import sys
+sys.path.append('..')
 
 class AbstractBuilder(ABC):
-  @abstractmethod @staticmethod
+  @staticmethod
+  @abstractmethod
   def prepare_datasets(path_to_original_data, target_variable):
     """
     :param path_to_original_data: Path to the folder where the pickled, prepared data resides.
@@ -15,7 +18,8 @@ class AbstractBuilder(ABC):
     """
     pass
 
-  @abstractmethod @staticmethod
+  @staticmethod
+  @abstractmethod
   def construct_model(n_train_cols, n_target_cols, learn_windows=False):
     """
     :param n_train_cols: A dictionary of the number of input columns, keyed with the respective layer name
