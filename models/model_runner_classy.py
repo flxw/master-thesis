@@ -34,21 +34,22 @@ os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu)
 
 # load appropriate model
 if args.model == 'evermann':
-    import builders.evermann as model_builder
+    from builders.evermann import as model_builder
     n_epochs = 50
 elif args.model == 'schoenig':
-    import builders.schoenig as model_builder
+    from builders.Schoenig import SchoenigBuilder as model_builder
+    import builders.schoenig as Builder
     n_epochs = 100
 elif args.model == 'sp2':
-    import builders.sp2 as model_builder
+    from builders.SP2 import SP2Builder as Builder
     n_epochs = 150
 elif args.model == 'pfs':
-    import builders.pfs as model_builder
+    from builders.PFS import PFS as model_builder
     n_epochs = 150
 
 # load appropriate data formatter
 if args.mode == 'individual':
-    import formatters.individual as data_formatter
+    from formatters.IndividualFormatter import IndividualFormatter as Formatter
 elif args.mode == 'grouped':
     import formatters.grouped as data_formatter
 elif args.mode == 'padded':
@@ -65,8 +66,8 @@ n_X_cols = [test_X[name][0].shape[-1] for name in test_X.keys()]
 n_Y_cols = test_Y[0].shape[-1]
 train_batchcount = len(train_Y)
 test_batchcount = len(test_Y)
-
 model = model_builder.construct_model(n_X_cols, n_Y_cols, args.mode == 'windowed')
+
 statistics_df = pd.DataFrame(columns=['loss', 'acc', 'val_loss', 'val_acc', 'training_time', 'validation_time'], index=range(0,n_epochs), dtype=np.float32)
 
 cb_earlystopper = EarlyStopping(monitor='val_loss',
