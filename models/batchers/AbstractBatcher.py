@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-class AbstractFormatter(ABC):
+class AbstractBatcher(ABC):
   @staticmethod
   @abstractmethod
   def format_datasets(model_formatted_data_fn, datapath, target_variable):

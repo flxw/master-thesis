@@ -1,3 +1,4 @@
+from .AbstractBuilder import AbstractBuilder
 import tensorflow as tf
 import keras
 import numpy as np
@@ -10,7 +11,10 @@ from keras.models import Sequential, Model
 from keras.layers import Dense, Embedding, Input, Masking, concatenate, ReLU, Activation, LSTM, Dropout
 from keras.utils import np_utils
 
-def prepare_datasets(path_to_original_data, target_variable):
+class PfsBuilder(AbstractBuilder):
+  n_epochs = 150
+
+  def prepare_datasets(path_to_original_data, target_variable):
     train_traces_categorical = load_trace_dataset(path_to_original_data, 'categorical', 'train')
     train_traces_ordinal = load_trace_dataset(path_to_original_data, 'ordinal', 'train')
     train_targets = load_trace_dataset(path_to_original_data, 'target', 'train')
@@ -22,25 +26,25 @@ def prepare_datasets(path_to_original_data, target_variable):
     test_traces_pfs = load_trace_dataset(path_to_original_data, 'pfs', 'test')
 
     feature_dict = load_trace_dataset(path_to_original_data, 'mapping', 'dict')
-    
+
     # Use one-hot encoding for categorical values in training and test set
     for col in train_traces_categorical[0].columns:
-        nc = len(feature_dict[col]['to_int'].values())
-        for i in range(0, len(train_traces_categorical)):
-            tmp = train_traces_categorical[i][col].map(feature_dict[col]['to_int'])
-            tmp = np_utils.to_categorical(tmp, num_classes=nc)
-            tmp = pd.DataFrame(tmp).add_prefix(col)
+      nc = len(feature_dict[col]['to_int'].values())
+      for i in range(0, len(train_traces_categorical)):
+        tmp = train_traces_categorical[i][col].map(feature_dict[col]['to_int'])
+        tmp = np_utils.to_categorical(tmp, num_classes=nc)
+        tmp = pd.DataFrame(tmp).add_prefix(col)
 
-            train_traces_categorical[i].drop(columns=[col], inplace=True)
-            train_traces_categorical[i] = pd.concat([train_traces_categorical[i], tmp], axis=1)
-            
-        for i in range(0, len(test_traces_categorical)):
-            tmp = test_traces_categorical[i][col].map(feature_dict[col]['to_int'])
-            tmp = np_utils.to_categorical(tmp, num_classes=nc)
-            tmp = pd.DataFrame(tmp).add_prefix(col)
+        train_traces_categorical[i].drop(columns=[col], inplace=True)
+        train_traces_categorical[i] = pd.concat([train_traces_categorical[i], tmp], axis=1)
+          
+      for i in range(0, len(test_traces_categorical)):
+        tmp = test_traces_categorical[i][col].map(feature_dict[col]['to_int'])
+        tmp = np_utils.to_categorical(tmp, num_classes=nc)
+        tmp = pd.DataFrame(tmp).add_prefix(col)
 
-            test_traces_categorical[i].drop(columns=[col], inplace=True)
-            test_traces_categorical[i] = pd.concat([test_traces_categorical[i], tmp], axis=1)
+        test_traces_categorical[i].drop(columns=[col], inplace=True)
+        test_traces_categorical[i] = pd.concat([test_traces_categorical[i], tmp], axis=1)
             
     # categorical and ordinal inputs are fed in on one single layer
     train_traces_seq = [ pd.concat([a,b], axis=1) for a,b in zip(train_traces_ordinal, train_traces_categorical) ]
@@ -59,7 +63,7 @@ def prepare_datasets(path_to_original_data, target_variable):
     
     return train_input, train_target_batches, test_input, test_target_batches
     
-def construct_model(n_train_cols, n_target_cols, learn_windows=False):
+  def construct_model(n_train_cols, n_target_cols, learn_windows=False):
     batch_size = None # None translates to unknown batch size
     window_size = None
     dropout=0.3

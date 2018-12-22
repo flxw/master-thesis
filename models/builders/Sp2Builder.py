@@ -9,7 +9,9 @@ from keras.initializers import glorot_normal
 from utils import *
 from .AbstractBuilder import AbstractBuilder
 
-class SP2Builder(AbstractBuilder):
+class Sp2Builder(AbstractBuilder):
+  n_epochs = 150
+
   def prepare_datasets(path_to_original_data, target_variable):
     train_traces_categorical = load_trace_dataset(path_to_original_data, 'categorical', 'train')
     train_traces_ordinal = load_trace_dataset(path_to_original_data, 'ordinal', 'train')

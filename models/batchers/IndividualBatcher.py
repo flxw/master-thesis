@@ -1,9 +1,6 @@
-from numpy import percentile
-from keras.preprocessing.sequence import pad_sequences
-from math import ceil
-from .AbstractFormatter import AbstractFormatter
+from .AbstractBatcher import AbstractBatcher
 
-class IndividualFormatter(AbstractFormatter):
+class IndividualBatcher(AbstractBatcher):
   def format_datasets(model_formatted_data_fn, datapath, target_variable):
     train_X, train_Y, test_X, test_Y = model_formatted_data_fn(datapath, target_variable)
 

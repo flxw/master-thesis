@@ -1,3 +1,4 @@
+from .AbstractBuilder import AbstractBuilder
 import numpy  as np
 import pandas as pd
 
@@ -8,28 +9,31 @@ from keras.optimizers import SGD
 from keras.initializers import Zeros, RandomUniform
 from utils import load_trace_dataset
 
-def prepare_datasets(path_to_original_data, target_variable):    
+class EvermannBuilder(AbstractBuilder):
+  n_epochs = 50
+
+  def prepare_datasets(path_to_original_data, target_variable):    
     train_traces  = load_trace_dataset(path_to_original_data, 'categorical', 'train')
     train_targets = load_trace_dataset(path_to_original_data, 'target', 'train')
     test_traces   = load_trace_dataset(path_to_original_data, 'categorical', 'test')
     test_targets  = load_trace_dataset(path_to_original_data, 'target', 'test')
     feature_dict  = load_trace_dataset(path_to_original_data, 'mapping', 'dict')
-    
+
     train_input  = [ t[target_variable].map(feature_dict[target_variable]['to_int']).values.reshape((-1,1)) for t in train_traces ]
     test_input   = [ t[target_variable].map(feature_dict[target_variable]['to_int']).values.reshape((-1,1)) for t in test_traces ]
     train_targets = np.array([ t.values for t in train_targets ])
     test_targets  = np.array([ t.values for t in test_targets ])
-    
+
     train_input = { 'seq_input': train_input }
     test_input  = { 'seq_input': test_input }
-    
+
     return train_input, train_targets, test_input, test_targets
-    
-def construct_model(n_train_cols, n_target_cols, learn_windows=False):
+
+  def construct_model(n_train_cols, n_target_cols, learn_windows=False):
     batch_size  = None # None translates to unknown size
     window_size = None
     reshape_size=(-1, 500)
-    
+
     il = Input(batch_shape=(batch_size,window_size,1), name='seq_input')
     main_output = Masking(mask_value=-1337)(il)
     main_output = Embedding(input_dim=n_target_cols,
@@ -54,8 +58,8 @@ def construct_model(n_train_cols, n_target_cols, learn_windows=False):
 
     main_output = Dense(n_target_cols, activation='softmax', name='dense_final')(main_output)
     full_model = Model(inputs=[il], outputs=[main_output])
-    
+
     optimizerator = SGD(lr=1)
     full_model.compile(loss='categorical_crossentropy', optimizer=optimizerator, metrics=['categorical_accuracy'])
-    
+
     return full_model
