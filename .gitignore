@@ -5,6 +5,7 @@ __pycache__/
 *.pickled
 *.csv
 *.swp
+logs/
 
 ## Core latex/pdflatex auxiliary files:
 *.aux
