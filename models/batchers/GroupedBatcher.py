@@ -44,4 +44,7 @@ class GroupedBatcher(AbstractBatcher):
       n_x_cols = test_X[layer_name][0].shape[1]
       test_inputs[layer_name]  = [ t.reshape((1, -1, n_x_cols)) for t in test_X[layer_name] ]
 
+    batchlens = [len(b) for b in test_Y]
+    print("Grouped batch size, std:", np.mean(batchlens), np.std(batchlens))
+        
     return train_X, train_Y, test_inputs, test_targets

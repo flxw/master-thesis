@@ -6,11 +6,12 @@ hpi_yellow = '#f6a800'
 
 current_palette = "RdBu"
 
-sns.set(font_scale=2.5, rc={'figure.figsize':(20,7.5)})
+sns.set(font_scale=2.2, rc={'figure.figsize':(20,10),
+                            'lines.linewidth': 3})
 sns.set_style('white', {'axes.axisbelow': True,
                         'axes.edgecolor': 'black',
                         'axes.facecolor': 'white',
-                        'axes.grid': True })
+                        'axes.grid': True})
 
 hpi_orange = '#dd6108'
 hpi_blue = '#007a9e'

@@ -48,13 +48,17 @@ class EvermannBuilder(AbstractBuilder):
                        return_sequences=True,
                        unroll=False,
                        dropout=0.2,
-                       kernel_initializer=Zeros())(main_output)
+                       kernel_initializer=RandomUniform(minval=-0.1, maxval=0.1, seed=123),
+                       recurrent_initializer=RandomUniform(minval=-0.1, maxval=0.1, seed=123),
+                       bias_initializer=RandomUniform(minval=-0.1, maxval=0.1, seed=123))(main_output)
     main_output = LSTM(500,
                        stateful=False,
                        return_sequences=not learn_windows,
                        unroll=False,
                        dropout=0.2,
-                       kernel_initializer=Zeros())(main_output)
+                       kernel_initializer=RandomUniform(minval=-0.1, maxval=0.1, seed=123),
+                       recurrent_initializer=RandomUniform(minval=-0.1, maxval=0.1, seed=123),
+                       bias_initializer=RandomUniform(minval=-0.1, maxval=0.1, seed=123))(main_output)
 
     main_output = Dense(n_target_cols, activation='softmax', name='dense_final')(main_output)
     full_model = Model(inputs=[il], outputs=[main_output])
